@@ -22,7 +22,6 @@ struct MyJiraApp: App {
             .tint(.black)
             .frame(minWidth: 980, minHeight: 640)
         }
-        .windowStyle(.hiddenTitleBar)
         .commands {
             CommandGroup(after: .newItem) {
                 Button("Refresh") {

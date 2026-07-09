@@ -5,4 +5,5 @@ protocol IssueRepository: Sendable {
     func issue(id: Issue.ID) async throws -> Issue?
     func refreshIssues(projectID: Project.ID) async throws
     func replaceIssues(projectID: Project.ID, issues: [Issue]) async throws
+    func updateStatus(issueID: Issue.ID, status: String) async throws
 }

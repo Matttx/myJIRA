@@ -3,6 +3,8 @@ import SwiftUI
 struct MainWindowView: View {
     @State var viewModel: MainWindowViewModel
     @Bindable var router: AppRouter
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @State private var isIssueInspectorPresented = true
 
     var body: some View {
         Group {
@@ -30,7 +32,7 @@ struct MainWindowView: View {
     }
 
     private var appContent: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             SidebarView(
                 workspaces: viewModel.workspaces,
                 selectedWorkspaceID: $router.selectedWorkspaceID,
@@ -44,17 +46,51 @@ struct MainWindowView: View {
                     Task { await viewModel.refresh(router: router) }
                 }
             )
-        } content: {
+        } detail: {
             BacklogView(
                 issues: viewModel.issues,
                 selectedIssueID: $router.selectedIssueID,
                 isRefreshing: viewModel.isRefreshing,
                 onRefresh: {
                     Task { await viewModel.refresh(router: router) }
+                },
+                onMoveIssue: { issueID, status, beforeIssueID in
+                    Task {
+                        await viewModel.moveIssue(
+                            id: issueID,
+                            toStatus: status,
+                            beforeIssueID: beforeIssueID
+                        )
+                    }
                 }
             )
-        } detail: {
-            IssueDetailView(issue: viewModel.issue(id: router.selectedIssueID))
+            .inspector(isPresented: $isIssueInspectorPresented) {
+                issueDetailInspector
+                    .inspectorColumnWidth(min: 340, ideal: 440, max: 760)
+            }
         }
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button {
+                    isIssueInspectorPresented.toggle()
+                } label: {
+                    Image(systemName: "sidebar.right")
+                }
+                .help(isIssueInspectorPresented ? "Hide detail" : "Show detail")
+            }
+        }
+    }
+
+    private var issueDetailInspector: some View {
+        let selectedIssue = viewModel.issue(id: router.selectedIssueID)
+
+        return IssueDetailView(
+            issue: selectedIssue,
+            parentIssue: viewModel.parent(for: selectedIssue),
+            subtasks: viewModel.subtasks(for: selectedIssue),
+            onSelectIssue: { issueID in
+                router.selectedIssueID = issueID
+            }
+        )
     }
 }

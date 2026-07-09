@@ -28,6 +28,10 @@ struct IssueRecord: Codable, FetchableRecord, PersistableRecord {
     var status: String
     var sprintName: String?
     var sprintState: String?
+    var parentID: String?
+    var parentKey: String?
+    var isSubtask: Bool
+    var subtaskIDsJSON: String
     var assigneeName: String?
     var updatedAt: Date
 }
@@ -62,12 +66,18 @@ extension IssueRecord {
         status = issue.status
         sprintName = issue.sprintName
         sprintState = issue.sprintState
+        parentID = issue.parentID
+        parentKey = issue.parentKey
+        isSubtask = issue.isSubtask
+        subtaskIDsJSON = (try? String(data: JSONEncoder().encode(issue.subtaskIDs), encoding: .utf8)) ?? "[]"
         assigneeName = issue.assigneeName
         updatedAt = issue.updatedAt
     }
 
     var domainValue: Issue {
-        Issue(
+        let subtaskIDs = (try? JSONDecoder().decode([String].self, from: Data(subtaskIDsJSON.utf8))) ?? []
+
+        return Issue(
             id: id,
             key: key,
             projectID: projectID,
@@ -75,6 +85,10 @@ extension IssueRecord {
             status: status,
             sprintName: sprintName,
             sprintState: sprintState,
+            parentID: parentID,
+            parentKey: parentKey,
+            isSubtask: isSubtask,
+            subtaskIDs: subtaskIDs,
             assigneeName: assigneeName,
             updatedAt: updatedAt
         )

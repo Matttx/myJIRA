@@ -55,7 +55,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
         components.scheme = "https"
         components.host = "api.atlassian.com"
         components.path = "/ex/jira/\(project.workspaceID)/rest/api/3/search/jql"
-        var fieldNames = ["summary", "status", "assignee", "updated"]
+        var fieldNames = ["summary", "status", "assignee", "updated", "parent", "subtasks", "issuetype"]
         if let sprintFieldID = try await sprintFieldID(accessToken: token.accessToken, cloudID: project.workspaceID) {
             fieldNames.append(sprintFieldID)
         }
@@ -95,6 +95,10 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
                     status: $0.fields.status.name,
                     sprintName: $0.fields.sprintName,
                     sprintState: $0.fields.sprintState,
+                    parentID: $0.fields.parent.map { "\(project.workspaceID):\($0.id)" },
+                    parentKey: $0.fields.parent?.key,
+                    isSubtask: $0.fields.issueType?.subtask ?? ($0.fields.parent != nil),
+                    subtaskIDs: $0.fields.subtasks.map { "\(project.workspaceID):\($0.id)" },
                     assigneeName: $0.fields.assignee?.displayName,
                     updatedAt: $0.fields.updated
                 )
@@ -188,12 +192,18 @@ private struct IssueFieldsDTO: Decodable {
     var sprintState: String?
     var assignee: IssueUserDTO?
     var updated: Date
+    var parent: IssueParentDTO?
+    var subtasks: [IssueSubtaskDTO]
+    var issueType: IssueTypeDTO?
 
     private enum CodingKeys: String, CodingKey {
         case summary
         case status
         case assignee
         case updated
+        case parent
+        case subtasks
+        case issueType = "issuetype"
     }
 
     init(from decoder: Decoder) throws {
@@ -202,6 +212,9 @@ private struct IssueFieldsDTO: Decodable {
         status = try knownValues.decode(IssueStatusDTO.self, forKey: .status)
         assignee = try knownValues.decodeIfPresent(IssueUserDTO.self, forKey: .assignee)
         updated = try knownValues.decode(Date.self, forKey: .updated)
+        parent = try knownValues.decodeIfPresent(IssueParentDTO.self, forKey: .parent)
+        subtasks = try knownValues.decodeIfPresent([IssueSubtaskDTO].self, forKey: .subtasks) ?? []
+        issueType = try knownValues.decodeIfPresent(IssueTypeDTO.self, forKey: .issueType)
 
         let customValues = try decoder.container(keyedBy: DynamicCodingKey.self)
         let sprintInfo = customValues.allKeys
@@ -232,6 +245,20 @@ private struct IssueStatusDTO: Decodable {
 
 private struct IssueUserDTO: Decodable {
     var displayName: String
+}
+
+private struct IssueParentDTO: Decodable {
+    var id: String
+    var key: String
+}
+
+private struct IssueSubtaskDTO: Decodable {
+    var id: String
+    var key: String
+}
+
+private struct IssueTypeDTO: Decodable {
+    var subtask: Bool
 }
 
 private struct IssueSprintDTO: Decodable {

@@ -41,4 +41,15 @@ final class LocalIssueRepository: IssueRepository, @unchecked Sendable {
             }
         }
     }
+
+    func updateStatus(issueID: Issue.ID, status: String) async throws {
+        _ = try await database.writer.write { db in
+            try IssueRecord
+                .filter(Column("id") == issueID)
+                .updateAll(db, [
+                    Column("status").set(to: status),
+                    Column("updatedAt").set(to: Date())
+                ])
+        }
+    }
 }

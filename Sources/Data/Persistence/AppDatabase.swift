@@ -70,6 +70,15 @@ final class AppDatabase: @unchecked Sendable {
             }
         }
 
+        migrator.registerMigration("addIssueHierarchy") { db in
+            try db.alter(table: IssueRecord.databaseTableName) { table in
+                table.add(column: "parentID", .text)
+                table.add(column: "parentKey", .text)
+                table.add(column: "isSubtask", .boolean).notNull().defaults(to: false)
+                table.add(column: "subtaskIDsJSON", .text).notNull().defaults(to: "[]")
+            }
+        }
+
         return migrator
     }
 }

@@ -16,7 +16,9 @@ final class SeedDataProvider: @unchecked Sendable {
         ]
         let issues = [
             Issue(id: "issue-app-1", key: "APP-1", projectID: "proj-app", summary: "Connecter OAuth Jira Cloud", status: "In Progress", sprintName: "Sprint 1", sprintState: "active", assigneeName: "Matteo", updatedAt: now),
-            Issue(id: "issue-app-2", key: "APP-2", projectID: "proj-app", summary: "Persister les projets dans le cache local", status: "To Do", sprintName: "Sprint 1", sprintState: "active", assigneeName: nil, updatedAt: now.addingTimeInterval(-1800)),
+            Issue(id: "issue-app-2", key: "APP-2", projectID: "proj-app", summary: "Persister les projets dans le cache local", status: "To Do", sprintName: "Sprint 1", sprintState: "active", subtaskIDs: ["issue-app-2-1", "issue-app-2-2"], assigneeName: nil, updatedAt: now.addingTimeInterval(-1800)),
+            Issue(id: "issue-app-2-1", key: "APP-4", projectID: "proj-app", summary: "Créer la migration SQLite", status: "Done", sprintName: "Sprint 1", sprintState: "active", parentID: "issue-app-2", parentKey: "APP-2", isSubtask: true, assigneeName: "Matteo", updatedAt: now.addingTimeInterval(-1200)),
+            Issue(id: "issue-app-2-2", key: "APP-5", projectID: "proj-app", summary: "Brancher le repository local", status: "In Progress", sprintName: "Sprint 1", sprintState: "active", parentID: "issue-app-2", parentKey: "APP-2", isSubtask: true, assigneeName: nil, updatedAt: now.addingTimeInterval(-900)),
             Issue(id: "issue-app-3", key: "APP-3", projectID: "proj-app", summary: "Afficher un backlog minimaliste", status: "Blocked", sprintName: nil, sprintState: nil, assigneeName: "Matteo", updatedAt: now.addingTimeInterval(-3600)),
             Issue(id: "issue-platform-1", key: "PLAT-1", projectID: "proj-platform", summary: "Préparer le polling incrémental", status: "To Do", sprintName: nil, sprintState: nil, assigneeName: nil, updatedAt: now.addingTimeInterval(-7200))
         ]

@@ -101,4 +101,57 @@ final class MainWindowViewModel {
         guard let id else { return nil }
         return issues.first { $0.id == id }
     }
+
+    func subtasks(for issue: Issue?) -> [Issue] {
+        guard let issue else { return [] }
+
+        if !issue.subtaskIDs.isEmpty {
+            return issue.subtaskIDs.compactMap { subtaskID in
+                issues.first { $0.id == subtaskID }
+            }
+        }
+
+        return issues
+            .filter { $0.parentID == issue.id }
+            .sorted { lhs, rhs in
+                lhs.updatedAt > rhs.updatedAt
+            }
+    }
+
+    func parent(for issue: Issue?) -> Issue? {
+        guard let parentID = issue?.parentID else { return nil }
+        return issues.first { $0.id == parentID }
+    }
+
+    func moveIssue(id: Issue.ID, toStatus status: String, beforeIssueID: Issue.ID?) async {
+        guard id != beforeIssueID else { return }
+        guard let sourceIndex = issues.firstIndex(where: { $0.id == id }) else { return }
+
+        let previousIssues = issues
+        var movedIssue = issues.remove(at: sourceIndex)
+        let didChangeStatus = movedIssue.status != status
+        movedIssue.status = status
+
+        if didChangeStatus {
+            movedIssue.updatedAt = Date()
+        }
+
+        if let beforeIssueID,
+           let targetIndex = issues.firstIndex(where: { $0.id == beforeIssueID }) {
+            issues.insert(movedIssue, at: targetIndex)
+        } else if let targetIndex = issues.lastIndex(where: { $0.status == status }) {
+            issues.insert(movedIssue, at: issues.index(after: targetIndex))
+        } else {
+            issues.append(movedIssue)
+        }
+
+        do {
+            if didChangeStatus {
+                try await issueRepository.updateStatus(issueID: id, status: status)
+            }
+        } catch {
+            issues = previousIssues
+            errorMessage = error.localizedDescription
+        }
+    }
 }
