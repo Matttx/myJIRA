@@ -1,0 +1,617 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		100000000000000000000001 /* myJIRAApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000101 /* myJIRAApp.swift */; };
+		100000000000000000000002 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000102 /* AppContainer.swift */; };
+		100000000000000000000003 /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000103 /* AppRouter.swift */; };
+		100000000000000000000004 /* Workspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000104 /* Workspace.swift */; };
+		100000000000000000000005 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000105 /* Project.swift */; };
+		100000000000000000000006 /* Issue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000106 /* Issue.swift */; };
+		100000000000000000000007 /* WorkspaceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000107 /* WorkspaceRepository.swift */; };
+		100000000000000000000008 /* IssueRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000108 /* IssueRepository.swift */; };
+		100000000000000000000009 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000109 /* AuthService.swift */; };
+		10000000000000000000000A /* JiraDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010A /* JiraDataService.swift */; };
+		10000000000000000000000B /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010B /* SyncService.swift */; };
+		10000000000000000000001F /* JiraConnectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000011F /* JiraConnectionService.swift */; };
+		100000000000000000000020 /* DefaultJiraConnectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000120 /* DefaultJiraConnectionService.swift */; };
+		100000000000000000000021 /* ConnectJiraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000121 /* ConnectJiraView.swift */; };
+		100000000000000000000023 /* JiraFonts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000123 /* JiraFonts.swift */; };
+		100000000000000000000024 /* JiraDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000124 /* JiraDesign.swift */; };
+		100000000000000000000025 /* MomoTrustDisplay-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000125 /* MomoTrustDisplay-Regular.ttf */; };
+		10000000000000000000000C /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010C /* AppDatabase.swift */; };
+		10000000000000000000000D /* Records.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010D /* Records.swift */; };
+		10000000000000000000000E /* LocalWorkspaceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010E /* LocalWorkspaceRepository.swift */; };
+		10000000000000000000000F /* LocalIssueRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010F /* LocalIssueRepository.swift */; };
+		100000000000000000000010 /* SeedDataProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000110 /* SeedDataProvider.swift */; };
+		100000000000000000000011 /* AtlassianAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000111 /* AtlassianAuthService.swift */; };
+		100000000000000000000012 /* AuthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000112 /* AuthModels.swift */; };
+		100000000000000000000013 /* KeychainSecretStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000113 /* KeychainSecretStore.swift */; };
+		100000000000000000000014 /* OAuthWebSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000114 /* OAuthWebSession.swift */; };
+		100000000000000000000022 /* OAuthCallbackCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000122 /* OAuthCallbackCenter.swift */; };
+		100000000000000000000015 /* JiraCloudDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000115 /* JiraCloudDataService.swift */; };
+		100000000000000000000016 /* PollingSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000116 /* PollingSyncService.swift */; };
+		100000000000000000000017 /* MainWindowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000117 /* MainWindowViewModel.swift */; };
+		100000000000000000000018 /* MainWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000118 /* MainWindowView.swift */; };
+		100000000000000000000019 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000119 /* SidebarView.swift */; };
+		10000000000000000000001A /* BacklogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000011A /* BacklogView.swift */; };
+		10000000000000000000001B /* IssueDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000011B /* IssueDetailView.swift */; };
+		10000000000000000000001C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000011C /* SettingsView.swift */; };
+		10000000000000000000001D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000011E /* Assets.xcassets */; };
+		10000000000000000000001E /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 100000000000000000000401 /* GRDB */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		100000000000000000000100 /* myJIRA.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = myJIRA.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		100000000000000000000101 /* myJIRAApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = myJIRAApp.swift; sourceTree = "<group>"; };
+		100000000000000000000102 /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
+		100000000000000000000103 /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
+		100000000000000000000104 /* Workspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Workspace.swift; sourceTree = "<group>"; };
+		100000000000000000000105 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
+		100000000000000000000106 /* Issue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Issue.swift; sourceTree = "<group>"; };
+		100000000000000000000107 /* WorkspaceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceRepository.swift; sourceTree = "<group>"; };
+		100000000000000000000108 /* IssueRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueRepository.swift; sourceTree = "<group>"; };
+		100000000000000000000109 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		10000000000000000000010A /* JiraDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JiraDataService.swift; sourceTree = "<group>"; };
+		10000000000000000000010B /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
+		10000000000000000000010C /* AppDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
+		10000000000000000000010D /* Records.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Records.swift; sourceTree = "<group>"; };
+		10000000000000000000010E /* LocalWorkspaceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalWorkspaceRepository.swift; sourceTree = "<group>"; };
+		10000000000000000000010F /* LocalIssueRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalIssueRepository.swift; sourceTree = "<group>"; };
+		100000000000000000000110 /* SeedDataProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedDataProvider.swift; sourceTree = "<group>"; };
+		100000000000000000000111 /* AtlassianAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlassianAuthService.swift; sourceTree = "<group>"; };
+		100000000000000000000112 /* AuthModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthModels.swift; sourceTree = "<group>"; };
+		100000000000000000000113 /* KeychainSecretStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainSecretStore.swift; sourceTree = "<group>"; };
+		100000000000000000000114 /* OAuthWebSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OAuthWebSession.swift; sourceTree = "<group>"; };
+		100000000000000000000122 /* OAuthCallbackCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OAuthCallbackCenter.swift; sourceTree = "<group>"; };
+		100000000000000000000115 /* JiraCloudDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JiraCloudDataService.swift; sourceTree = "<group>"; };
+		100000000000000000000116 /* PollingSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollingSyncService.swift; sourceTree = "<group>"; };
+		100000000000000000000117 /* MainWindowViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowViewModel.swift; sourceTree = "<group>"; };
+		100000000000000000000118 /* MainWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowView.swift; sourceTree = "<group>"; };
+		100000000000000000000119 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		10000000000000000000011A /* BacklogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacklogView.swift; sourceTree = "<group>"; };
+		10000000000000000000011B /* IssueDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueDetailView.swift; sourceTree = "<group>"; };
+		10000000000000000000011C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		10000000000000000000011D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		10000000000000000000011E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		10000000000000000000011F /* JiraConnectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JiraConnectionService.swift; sourceTree = "<group>"; };
+		100000000000000000000120 /* DefaultJiraConnectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultJiraConnectionService.swift; sourceTree = "<group>"; };
+		100000000000000000000121 /* ConnectJiraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectJiraView.swift; sourceTree = "<group>"; };
+		100000000000000000000123 /* JiraFonts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JiraFonts.swift; sourceTree = "<group>"; };
+		100000000000000000000124 /* JiraDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JiraDesign.swift; sourceTree = "<group>"; };
+		100000000000000000000125 /* MomoTrustDisplay-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "MomoTrustDisplay-Regular.ttf"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		100000000000000000000201 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				10000000000000000000001E /* GRDB in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		100000000000000000000300 = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000301 /* Sources */,
+				100000000000000000000309 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		100000000000000000000301 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000302 /* App */,
+				100000000000000000000303 /* Domain */,
+				100000000000000000000306 /* Data */,
+				10000000000000000000030A /* Infrastructure */,
+				10000000000000000000030D /* Presentation */,
+				10000000000000000000011E /* Assets.xcassets */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		100000000000000000000302 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000101 /* myJIRAApp.swift */,
+				100000000000000000000102 /* AppContainer.swift */,
+				100000000000000000000103 /* AppRouter.swift */,
+				10000000000000000000011D /* Info.plist */,
+				100000000000000000000125 /* MomoTrustDisplay-Regular.ttf */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		100000000000000000000303 /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000304 /* Entities */,
+				100000000000000000000305 /* Repositories */,
+				10000000000000000000030F /* Services */,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		100000000000000000000304 /* Entities */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000104 /* Workspace.swift */,
+				100000000000000000000105 /* Project.swift */,
+				100000000000000000000106 /* Issue.swift */,
+			);
+			path = Entities;
+			sourceTree = "<group>";
+		};
+		100000000000000000000305 /* Repositories */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000107 /* WorkspaceRepository.swift */,
+				100000000000000000000108 /* IssueRepository.swift */,
+			);
+			path = Repositories;
+			sourceTree = "<group>";
+		};
+		100000000000000000000306 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000307 /* Persistence */,
+				100000000000000000000308 /* Repositories */,
+				100000000000000000000110 /* SeedDataProvider.swift */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		100000000000000000000307 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				10000000000000000000010C /* AppDatabase.swift */,
+				10000000000000000000010D /* Records.swift */,
+			);
+			path = Persistence;
+			sourceTree = "<group>";
+		};
+		100000000000000000000308 /* Repositories */ = {
+			isa = PBXGroup;
+			children = (
+				10000000000000000000010E /* LocalWorkspaceRepository.swift */,
+				10000000000000000000010F /* LocalIssueRepository.swift */,
+			);
+			path = Repositories;
+			sourceTree = "<group>";
+		};
+		100000000000000000000309 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000100 /* myJIRA.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		10000000000000000000030A /* Infrastructure */ = {
+			isa = PBXGroup;
+			children = (
+				10000000000000000000030B /* Auth */,
+				10000000000000000000030C /* Sync */,
+				100000000000000000000310 /* Jira */,
+			);
+			path = Infrastructure;
+			sourceTree = "<group>";
+		};
+		10000000000000000000030B /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000111 /* AtlassianAuthService.swift */,
+				100000000000000000000112 /* AuthModels.swift */,
+				100000000000000000000120 /* DefaultJiraConnectionService.swift */,
+				100000000000000000000113 /* KeychainSecretStore.swift */,
+				100000000000000000000122 /* OAuthCallbackCenter.swift */,
+				100000000000000000000114 /* OAuthWebSession.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		10000000000000000000030C /* Sync */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000116 /* PollingSyncService.swift */,
+			);
+			path = Sync;
+			sourceTree = "<group>";
+		};
+		10000000000000000000030D /* Presentation */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000312 /* Design */,
+				10000000000000000000030E /* ViewModels */,
+				100000000000000000000311 /* Views */,
+			);
+			path = Presentation;
+			sourceTree = "<group>";
+		};
+		10000000000000000000030E /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000117 /* MainWindowViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		10000000000000000000030F /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000109 /* AuthService.swift */,
+				10000000000000000000010A /* JiraDataService.swift */,
+				10000000000000000000011F /* JiraConnectionService.swift */,
+				10000000000000000000010B /* SyncService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		100000000000000000000310 /* Jira */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000115 /* JiraCloudDataService.swift */,
+			);
+			path = Jira;
+			sourceTree = "<group>";
+		};
+		100000000000000000000311 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000118 /* MainWindowView.swift */,
+				100000000000000000000119 /* SidebarView.swift */,
+				10000000000000000000011A /* BacklogView.swift */,
+				100000000000000000000121 /* ConnectJiraView.swift */,
+				10000000000000000000011B /* IssueDetailView.swift */,
+				10000000000000000000011C /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		100000000000000000000312 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000123 /* JiraFonts.swift */,
+				100000000000000000000124 /* JiraDesign.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		100000000000000000000500 /* myJIRA */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 100000000000000000000601 /* Build configuration list for PBXNativeTarget "myJIRA" */;
+			buildPhases = (
+				100000000000000000000203 /* Sources */,
+				100000000000000000000201 /* Frameworks */,
+				100000000000000000000202 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = myJIRA;
+			packageProductDependencies = (
+				100000000000000000000401 /* GRDB */,
+			);
+			productName = myJIRA;
+			productReference = 100000000000000000000100 /* myJIRA.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		100000000000000000000700 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2640;
+				LastUpgradeCheck = 2640;
+				TargetAttributes = {
+					100000000000000000000500 = {
+						CreatedOnToolsVersion = 26.4;
+					};
+				};
+			};
+			buildConfigurationList = 100000000000000000000600 /* Build configuration list for PBXProject "myJIRA" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 100000000000000000000300;
+			packageReferences = (
+				100000000000000000000400 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+			);
+			productRefGroup = 100000000000000000000309 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				100000000000000000000500 /* myJIRA */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		100000000000000000000202 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				10000000000000000000001D /* Assets.xcassets in Resources */,
+				100000000000000000000025 /* MomoTrustDisplay-Regular.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		100000000000000000000203 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				100000000000000000000001 /* myJIRAApp.swift in Sources */,
+				100000000000000000000002 /* AppContainer.swift in Sources */,
+				100000000000000000000003 /* AppRouter.swift in Sources */,
+				100000000000000000000004 /* Workspace.swift in Sources */,
+				100000000000000000000005 /* Project.swift in Sources */,
+				100000000000000000000006 /* Issue.swift in Sources */,
+				100000000000000000000007 /* WorkspaceRepository.swift in Sources */,
+				100000000000000000000008 /* IssueRepository.swift in Sources */,
+				100000000000000000000009 /* AuthService.swift in Sources */,
+				10000000000000000000000A /* JiraDataService.swift in Sources */,
+				10000000000000000000001F /* JiraConnectionService.swift in Sources */,
+				10000000000000000000000B /* SyncService.swift in Sources */,
+				10000000000000000000000C /* AppDatabase.swift in Sources */,
+				10000000000000000000000D /* Records.swift in Sources */,
+				10000000000000000000000E /* LocalWorkspaceRepository.swift in Sources */,
+				10000000000000000000000F /* LocalIssueRepository.swift in Sources */,
+				100000000000000000000010 /* SeedDataProvider.swift in Sources */,
+				100000000000000000000011 /* AtlassianAuthService.swift in Sources */,
+				100000000000000000000012 /* AuthModels.swift in Sources */,
+				100000000000000000000020 /* DefaultJiraConnectionService.swift in Sources */,
+				100000000000000000000013 /* KeychainSecretStore.swift in Sources */,
+				100000000000000000000022 /* OAuthCallbackCenter.swift in Sources */,
+				100000000000000000000014 /* OAuthWebSession.swift in Sources */,
+				100000000000000000000015 /* JiraCloudDataService.swift in Sources */,
+				100000000000000000000016 /* PollingSyncService.swift in Sources */,
+				100000000000000000000017 /* MainWindowViewModel.swift in Sources */,
+				100000000000000000000018 /* MainWindowView.swift in Sources */,
+				100000000000000000000023 /* JiraFonts.swift in Sources */,
+				100000000000000000000024 /* JiraDesign.swift in Sources */,
+				100000000000000000000019 /* SidebarView.swift in Sources */,
+				10000000000000000000001A /* BacklogView.swift in Sources */,
+				100000000000000000000021 /* ConnectJiraView.swift in Sources */,
+				10000000000000000000001B /* IssueDetailView.swift in Sources */,
+				10000000000000000000001C /* SettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		100000000000000000000701 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		100000000000000000000702 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		100000000000000000000703 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sources/App/Info.plist;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.matteofauchon.myjira;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		100000000000000000000704 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sources/App/Info.plist;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.matteofauchon.myjira;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		100000000000000000000600 /* Build configuration list for PBXProject "myJIRA" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				100000000000000000000701 /* Debug */,
+				100000000000000000000702 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		100000000000000000000601 /* Build configuration list for PBXNativeTarget "myJIRA" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				100000000000000000000703 /* Debug */,
+				100000000000000000000704 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		100000000000000000000400 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		100000000000000000000401 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 100000000000000000000400 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 100000000000000000000700 /* Project object */;
+}
