@@ -49,6 +49,7 @@ struct MainWindowView: View {
         } detail: {
             BacklogView(
                 issues: viewModel.issues,
+                kanbanColumnOrder: viewModel.kanbanColumnOrder,
                 selectedIssueID: $router.selectedIssueID,
                 isRefreshing: viewModel.isRefreshing,
                 onRefresh: {
@@ -60,6 +61,20 @@ struct MainWindowView: View {
                             id: issueID,
                             toStatus: status,
                             beforeIssueID: beforeIssueID
+                        )
+                    }
+                },
+                onUpdateStoryPoints: { issueID, storyPoints in
+                    Task {
+                        await viewModel.updateStoryPoints(issueID: issueID, storyPoints: storyPoints)
+                    }
+                },
+                onMoveColumn: { title, beforeTitle in
+                    Task {
+                        await viewModel.moveKanbanColumn(
+                            title,
+                            before: beforeTitle,
+                            projectID: router.selectedProjectID
                         )
                     }
                 }
@@ -88,8 +103,14 @@ struct MainWindowView: View {
             issue: selectedIssue,
             parentIssue: viewModel.parent(for: selectedIssue),
             subtasks: viewModel.subtasks(for: selectedIssue),
+            isLoadingChangelog: viewModel.isLoadingChangelog(for: selectedIssue?.id),
             onSelectIssue: { issueID in
                 router.selectedIssueID = issueID
+            },
+            onDetailsPageVisible: { issueID in
+                Task {
+                    await viewModel.loadChangelogIfNeeded(issueID: issueID)
+                }
             }
         )
     }

@@ -2,14 +2,16 @@ import SwiftUI
 
 struct BacklogView: View {
     let issues: [Issue]
+    let kanbanColumnOrder: [String]
     @Binding var selectedIssueID: Issue.ID?
     let isRefreshing: Bool
     let onRefresh: () -> Void
     let onMoveIssue: (Issue.ID, String, Issue.ID?) -> Void
+    let onUpdateStoryPoints: (Issue.ID, Double?) -> Void
+    let onMoveColumn: (String, String?) -> Void
     @State private var selectedFocus: BacklogFocus = .backlog
     @State private var selectedSprintFilter: SprintFilter = .all
     @State private var searchQuery = ""
-    @State private var statusOrder: [String] = []
 
     var body: some View {
         VStack(spacing: 16) {
@@ -39,22 +41,16 @@ struct BacklogView: View {
                         columns: kanbanColumns,
                         selectedIssueID: $selectedIssueID,
                         onMoveIssue: onMoveIssue,
-                        onMoveColumn: moveColumn
+                        onMoveColumn: onMoveColumn
                     )
                 }
             }
         }
         .background(Color(nsColor: .windowBackgroundColor))
-        .onAppear {
-            syncStatusOrder()
-        }
-        .onChange(of: statusOptions) { _, _ in
-            syncStatusOrder()
-        }
     }
 
     private var availableIssues: [Issue] {
-        issues.filter { !$0.isDoneSprint }
+        issues.filter { !$0.isDoneSprint && !$0.isCompletedIssue }
     }
 
     private var browsableIssues: [Issue] {
@@ -124,7 +120,7 @@ struct BacklogView: View {
     }
 
     private var orderedStatusOptions: [String] {
-        let knownStatuses = statusOrder.filter { statusOptions.contains($0) }
+        let knownStatuses = kanbanColumnOrder.filter { statusOptions.contains($0) }
         let newStatuses = statusOptions.filter { !knownStatuses.contains($0) }
         return knownStatuses + newStatuses
     }
@@ -212,7 +208,13 @@ struct BacklogView: View {
                                 IssueRowView(
                                     issue: issue,
                                     isSelected: selectedIssueID == issue.id,
-                                    statusOptions: statusOptions
+                                    statusOptions: statusOptions,
+                                    onChangeStatus: { status in
+                                        onMoveIssue(issue.id, status, nil)
+                                    },
+                                    onUpdateStoryPoints: { storyPoints in
+                                        onUpdateStoryPoints(issue.id, storyPoints)
+                                    }
                                 )
                                 .onTapGesture {
                                     selectedIssueID = issue.id
@@ -292,28 +294,6 @@ struct BacklogView: View {
         }
 
         selectedIssueID = exactMatch?.id ?? filteredIssues.first?.id
-    }
-
-    private func syncStatusOrder() {
-        let nextOrder = orderedStatusOptions
-        if statusOrder != nextOrder {
-            statusOrder = nextOrder
-        }
-    }
-
-    private func moveColumn(_ title: String, before beforeTitle: String?) {
-        var nextOrder = orderedStatusOptions
-        guard let sourceIndex = nextOrder.firstIndex(of: title) else { return }
-
-        nextOrder.remove(at: sourceIndex)
-
-        if let beforeTitle, let targetIndex = nextOrder.firstIndex(of: beforeTitle) {
-            nextOrder.insert(title, at: targetIndex)
-        } else {
-            nextOrder.append(title)
-        }
-
-        statusOrder = nextOrder
     }
 }
 
@@ -486,8 +466,14 @@ private struct KanbanColumnView: View {
     let onMoveIssue: (Issue.ID, String, Issue.ID?) -> Void
 
     var body: some View {
+        let statusColor = JiraStatusColor.resolved(for: column.title)
+
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
+                Circle()
+                    .fill(statusColor.accent)
+                    .frame(width: 8, height: 8)
+
                 Text(column.title.uppercased())
                     .font(.headingXS)
                     .foregroundStyle(.primary)
@@ -495,13 +481,19 @@ private struct KanbanColumnView: View {
 
                 Text("\(column.issues.count)")
                     .font(.labelS)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(statusColor.accent)
                     .padding(.horizontal, 9)
                     .padding(.vertical, 4)
-                    .background(JiraDesign.surface)
+                    .background(statusColor.background)
                     .clipShape(.capsule)
             }
             .padding(.horizontal, 4)
+            .overlay(alignment: .bottomLeading) {
+                Capsule()
+                    .fill(statusColor.accent.opacity(0.38))
+                    .frame(width: 36, height: 2)
+                    .offset(y: 8)
+            }
 
             ScrollView {
                 LazyVStack(spacing: 0) {
@@ -589,6 +581,8 @@ private struct KanbanIssueCard: View {
     let isSelected: Bool
 
     var body: some View {
+        let statusColor = JiraStatusColor.resolved(for: issue.status)
+
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 Text(issue.key)
@@ -626,6 +620,12 @@ private struct KanbanIssueCard: View {
         .padding(12)
         .background(isSelected ? JiraDesign.accent : JiraDesign.surface)
         .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
+        .overlay(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 2, style: .continuous)
+                .fill(statusColor.accent.opacity(isSelected ? 0.9 : 0.7))
+                .frame(width: 3)
+                .padding(.vertical, 10)
+        }
         .contentShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
     }
 }
@@ -634,6 +634,8 @@ private struct IssueRowView: View {
     let issue: Issue
     let isSelected: Bool
     let statusOptions: [String]
+    let onChangeStatus: (String) -> Void
+    let onUpdateStoryPoints: (Double?) -> Void
 
     var body: some View {
         HStack(spacing: 14) {
@@ -649,12 +651,14 @@ private struct IssueRowView: View {
 
             Spacer()
 
+            EditableStoryPointsTag(
+                storyPoints: issue.storyPoints,
+                isSelected: isSelected,
+                onCommit: onUpdateStoryPoints
+            )
+
             if let assigneeName = issue.assigneeName {
-                Text(assigneeName)
-                    .font(.paragraphS)
-                    .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
-                    .lineLimit(1)
-                    .frame(maxWidth: 120, alignment: .trailing)
+                AssigneeAvatar(name: assigneeName, isSelected: isSelected)
             }
 
             if issue.subtaskCount > 0 {
@@ -663,13 +667,15 @@ private struct IssueRowView: View {
 
             JiraInlineValuePickerRow(selection: Binding(
                 get: { issue.status },
-                set: { _ in }
-            ), isProminent: isSelected) {
+                set: { status in
+                    guard status != issue.status else { return }
+                    onChangeStatus(status)
+                }
+            ), isProminent: isSelected, statusColor: JiraStatusColor.resolved(for: issue.status)) {
                 ForEach(statusOptions, id: \.self) { status in
                     Text(status).tag(status)
                 }
             }
-            .frame(width: 132, alignment: .trailing)
         }
         .foregroundStyle(isSelected ? Color.foreground : Color.primary)
         .padding(.horizontal, 14)
@@ -677,6 +683,123 @@ private struct IssueRowView: View {
         .background(isSelected ? JiraDesign.accent : JiraDesign.surface)
         .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
         .contentShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
+    }
+}
+
+private struct AssigneeAvatar: View {
+    let name: String
+    let isSelected: Bool
+    @State private var isHovering = false
+
+    var body: some View {
+        Text(initials)
+            .font(.labelS)
+            .foregroundStyle(isSelected ? Color.foreground : Color.primary)
+            .frame(width: 30, height: 30)
+            .background(isSelected ? Color.foreground.opacity(0.12) : JiraDesign.surface)
+            .clipShape(Circle())
+            .overlay {
+                Circle()
+                    .stroke(isSelected ? Color.foreground.opacity(0.18) : JiraDesign.hairline, lineWidth: 1)
+            }
+            .onHover { hovering in
+                withAnimation(.easeOut(duration: 0.12)) {
+                    isHovering = hovering
+                }
+            }
+            .popover(isPresented: $isHovering, arrowEdge: .top) {
+                Text(name)
+                    .font(.paragraphS)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+            }
+    }
+
+    private var initials: String {
+        let parts = name
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .split(separator: " ")
+            .prefix(2)
+            .compactMap(\.first)
+
+        return parts.isEmpty ? "?" : String(parts).uppercased()
+    }
+}
+
+private struct EditableStoryPointsTag: View {
+    let storyPoints: Double?
+    let isSelected: Bool
+    let onCommit: (Double?) -> Void
+
+    @State private var isEditing = false
+    @State private var draftValue = ""
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        Group {
+            if isEditing {
+                TextField("SP", text: $draftValue)
+                    .textFieldStyle(.plain)
+                    .font(.paragraphS)
+                    .foregroundStyle(.primary)
+                    .frame(width: 54)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(JiraDesign.foreground)
+                    .clipShape(.capsule)
+                    .focused($isFocused)
+                    .onSubmit(commit)
+                    .onChange(of: isFocused) { _, focused in
+                        guard !focused else { return }
+                        commit()
+                    }
+            } else {
+                Button {
+                    draftValue = storyPoints.map(Self.format) ?? ""
+                    isEditing = true
+                    isFocused = true
+                } label: {
+                    Text(storyPoints.map { "\(Self.format($0)) SP" } ?? "-")
+                        .font(.paragraphS)
+                        .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
+                        .lineLimit(1)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(isSelected ? Color.foreground.opacity(0.12) : JiraDesign.surface)
+                        .clipShape(.capsule)
+                }
+                .buttonStyle(.plain)
+                .help("Edit story points")
+            }
+        }
+        .onAppear {
+            guard !isEditing else { return }
+            draftValue = storyPoints.map(Self.format) ?? ""
+        }
+        .onChange(of: storyPoints) { _, nextStoryPoints in
+            guard !isEditing else { return }
+            draftValue = nextStoryPoints.map(Self.format) ?? ""
+        }
+    }
+
+    private func commit() {
+        guard isEditing else { return }
+        isEditing = false
+
+        let trimmed = draftValue.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: ".")
+        let normalized = trimmed.isEmpty ? nil : Double(trimmed)
+        guard normalized != storyPoints else { return }
+        onCommit(normalized)
+    }
+
+    private static func format(_ value: Double) -> String {
+        if value.rounded() == value {
+            return String(Int(value))
+        }
+        return String(format: "%.1f", value)
     }
 }
 
@@ -714,6 +837,19 @@ private extension Issue {
         guard let sprintState else { return false }
         let normalized = sprintState.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         return normalized == "closed" || normalized == "done"
+    }
+
+    var isCompletedIssue: Bool {
+        if statusCategoryKey?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "done" {
+            return true
+        }
+
+        let normalizedStatus = status
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+            .lowercased()
+
+        return ["done", "closed", "resolved", "termine", "terminee"].contains(normalizedStatus)
     }
 
     var isFutureSprint: Bool {

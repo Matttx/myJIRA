@@ -11,10 +11,11 @@ struct MyJiraApp: App {
         WindowGroup("myJIRA", id: "main") {
             MainWindowView(
                 viewModel: MainWindowViewModel(
-                    workspaceRepository: container.workspaceRepository,
-                    issueRepository: container.issueRepository,
-                    syncService: container.syncService,
-                    jiraConnectionService: container.jiraConnectionService
+                    jiraSessionUseCase: container.jiraSessionUseCase,
+                    projectIssuesUseCase: container.projectIssuesUseCase,
+                    issueBoardUseCase: container.issueBoardUseCase,
+                    issueHierarchyUseCase: container.issueHierarchyUseCase,
+                    issueDetailUseCase: container.issueDetailUseCase
                 ),
                 router: router
             )

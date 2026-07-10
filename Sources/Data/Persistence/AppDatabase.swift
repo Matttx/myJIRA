@@ -79,6 +79,57 @@ final class AppDatabase: @unchecked Sendable {
             }
         }
 
+        migrator.registerMigration("addIssueStatusCategory") { db in
+            try db.alter(table: IssueRecord.databaseTableName) { table in
+                table.add(column: "statusCategoryKey", .text)
+            }
+        }
+
+        migrator.registerMigration("addIssueDetailFields") { db in
+            try db.alter(table: IssueRecord.databaseTableName) { table in
+                table.add(column: "descriptionText", .text)
+                table.add(column: "commentsJSON", .text).notNull().defaults(to: "[]")
+                table.add(column: "issueTypeName", .text)
+                table.add(column: "priorityName", .text)
+                table.add(column: "reporterName", .text)
+                table.add(column: "labelsJSON", .text).notNull().defaults(to: "[]")
+                table.add(column: "createdAt", .datetime)
+            }
+        }
+
+        migrator.registerMigration("addIssueChangelog") { db in
+            try db.alter(table: IssueRecord.databaseTableName) { table in
+                table.add(column: "changesJSON", .text).notNull().defaults(to: "[]")
+            }
+        }
+
+        migrator.registerMigration("addIssueSprintID") { db in
+            try db.alter(table: IssueRecord.databaseTableName) { table in
+                table.add(column: "sprintID", .integer)
+            }
+        }
+
+        migrator.registerMigration("addIssueStoryPoints") { db in
+            try db.alter(table: IssueRecord.databaseTableName) { table in
+                table.add(column: "storyPoints", .double)
+            }
+        }
+
+        migrator.registerMigration("addIssueStoryPointsFieldID") { db in
+            try db.alter(table: IssueRecord.databaseTableName) { table in
+                table.add(column: "storyPointsFieldID", .text)
+            }
+        }
+
+        migrator.registerMigration("createKanbanColumnOrders") { db in
+            try db.create(table: KanbanColumnOrderRecord.databaseTableName) { table in
+                table.column("projectID", .text).notNull().references(ProjectRecord.databaseTableName, onDelete: .cascade)
+                table.column("status", .text).notNull()
+                table.column("position", .integer).notNull()
+                table.primaryKey(["projectID", "status"])
+            }
+        }
+
         return migrator
     }
 }

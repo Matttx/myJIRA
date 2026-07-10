@@ -24,6 +24,15 @@
 		100000000000000000000023 /* JiraFonts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000123 /* JiraFonts.swift */; };
 		100000000000000000000024 /* JiraDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000124 /* JiraDesign.swift */; };
 		100000000000000000000025 /* MomoTrustDisplay-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000125 /* MomoTrustDisplay-Regular.ttf */; };
+		100000000000000000000026 /* KanbanColumnOrderRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000126 /* KanbanColumnOrderRepository.swift */; };
+		100000000000000000000027 /* LocalKanbanColumnOrderRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000127 /* LocalKanbanColumnOrderRepository.swift */; };
+		100000000000000000000028 /* ProjectIssuesUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000128 /* ProjectIssuesUseCase.swift */; };
+		100000000000000000000029 /* JiraSessionUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000129 /* JiraSessionUseCase.swift */; };
+		10000000000000000000002A /* IssueBoardUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000012A /* IssueBoardUseCase.swift */; };
+		10000000000000000000002B /* IssueHierarchyUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000012B /* IssueHierarchyUseCase.swift */; };
+		10000000000000000000002C /* KanbanColumnOrderResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000012C /* KanbanColumnOrderResolver.swift */; };
+		10000000000000000000002D /* IssueDetailUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000012D /* IssueDetailUseCase.swift */; };
+		10000000000000000000002E /* IssueSprintValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000012E /* IssueSprintValue.swift */; };
 		10000000000000000000000C /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010C /* AppDatabase.swift */; };
 		10000000000000000000000D /* Records.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010D /* Records.swift */; };
 		10000000000000000000000E /* LocalWorkspaceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010E /* LocalWorkspaceRepository.swift */; };
@@ -85,6 +94,15 @@
 		100000000000000000000123 /* JiraFonts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JiraFonts.swift; sourceTree = "<group>"; };
 		100000000000000000000124 /* JiraDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JiraDesign.swift; sourceTree = "<group>"; };
 		100000000000000000000125 /* MomoTrustDisplay-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "MomoTrustDisplay-Regular.ttf"; sourceTree = "<group>"; };
+		100000000000000000000126 /* KanbanColumnOrderRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanColumnOrderRepository.swift; sourceTree = "<group>"; };
+		100000000000000000000127 /* LocalKanbanColumnOrderRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalKanbanColumnOrderRepository.swift; sourceTree = "<group>"; };
+		100000000000000000000128 /* ProjectIssuesUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectIssuesUseCase.swift; sourceTree = "<group>"; };
+		100000000000000000000129 /* JiraSessionUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JiraSessionUseCase.swift; sourceTree = "<group>"; };
+		10000000000000000000012A /* IssueBoardUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueBoardUseCase.swift; sourceTree = "<group>"; };
+		10000000000000000000012B /* IssueHierarchyUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueHierarchyUseCase.swift; sourceTree = "<group>"; };
+		10000000000000000000012C /* KanbanColumnOrderResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanColumnOrderResolver.swift; sourceTree = "<group>"; };
+		10000000000000000000012D /* IssueDetailUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueDetailUseCase.swift; sourceTree = "<group>"; };
+		10000000000000000000012E /* IssueSprintValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueSprintValue.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -138,6 +156,7 @@
 				100000000000000000000304 /* Entities */,
 				100000000000000000000305 /* Repositories */,
 				10000000000000000000030F /* Services */,
+				100000000000000000000313 /* UseCases */,
 			);
 			path = Domain;
 			sourceTree = "<group>";
@@ -148,6 +167,7 @@
 				100000000000000000000104 /* Workspace.swift */,
 				100000000000000000000105 /* Project.swift */,
 				100000000000000000000106 /* Issue.swift */,
+				10000000000000000000012E /* IssueSprintValue.swift */,
 			);
 			path = Entities;
 			sourceTree = "<group>";
@@ -157,6 +177,7 @@
 			children = (
 				100000000000000000000107 /* WorkspaceRepository.swift */,
 				100000000000000000000108 /* IssueRepository.swift */,
+				100000000000000000000126 /* KanbanColumnOrderRepository.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -185,6 +206,7 @@
 			children = (
 				10000000000000000000010E /* LocalWorkspaceRepository.swift */,
 				10000000000000000000010F /* LocalIssueRepository.swift */,
+				100000000000000000000127 /* LocalKanbanColumnOrderRepository.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -287,6 +309,19 @@
 			path = Design;
 			sourceTree = "<group>";
 		};
+		100000000000000000000313 /* UseCases */ = {
+			isa = PBXGroup;
+			children = (
+				10000000000000000000012A /* IssueBoardUseCase.swift */,
+				10000000000000000000012B /* IssueHierarchyUseCase.swift */,
+				10000000000000000000012D /* IssueDetailUseCase.swift */,
+				100000000000000000000129 /* JiraSessionUseCase.swift */,
+				10000000000000000000012C /* KanbanColumnOrderResolver.swift */,
+				100000000000000000000128 /* ProjectIssuesUseCase.swift */,
+			);
+			path = UseCases;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -369,8 +404,16 @@
 				100000000000000000000004 /* Workspace.swift in Sources */,
 				100000000000000000000005 /* Project.swift in Sources */,
 				100000000000000000000006 /* Issue.swift in Sources */,
+				10000000000000000000002E /* IssueSprintValue.swift in Sources */,
 				100000000000000000000007 /* WorkspaceRepository.swift in Sources */,
 				100000000000000000000008 /* IssueRepository.swift in Sources */,
+				100000000000000000000026 /* KanbanColumnOrderRepository.swift in Sources */,
+				10000000000000000000002A /* IssueBoardUseCase.swift in Sources */,
+				10000000000000000000002B /* IssueHierarchyUseCase.swift in Sources */,
+				10000000000000000000002D /* IssueDetailUseCase.swift in Sources */,
+				100000000000000000000029 /* JiraSessionUseCase.swift in Sources */,
+				10000000000000000000002C /* KanbanColumnOrderResolver.swift in Sources */,
+				100000000000000000000028 /* ProjectIssuesUseCase.swift in Sources */,
 				100000000000000000000009 /* AuthService.swift in Sources */,
 				10000000000000000000000A /* JiraDataService.swift in Sources */,
 				10000000000000000000001F /* JiraConnectionService.swift in Sources */,
@@ -379,6 +422,7 @@
 				10000000000000000000000D /* Records.swift in Sources */,
 				10000000000000000000000E /* LocalWorkspaceRepository.swift in Sources */,
 				10000000000000000000000F /* LocalIssueRepository.swift in Sources */,
+				100000000000000000000027 /* LocalKanbanColumnOrderRepository.swift in Sources */,
 				100000000000000000000010 /* SeedDataProvider.swift in Sources */,
 				100000000000000000000011 /* AtlassianAuthService.swift in Sources */,
 				100000000000000000000012 /* AuthModels.swift in Sources */,
