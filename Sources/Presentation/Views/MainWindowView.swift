@@ -18,6 +18,7 @@ struct MainWindowView: View {
                 }
             }
         }
+        .endEditingOnOutsideClick()
         .task {
             await viewModel.loadInitialSelection(router: router)
         }
@@ -50,8 +51,13 @@ struct MainWindowView: View {
             BacklogView(
                 issues: viewModel.issues,
                 kanbanColumnOrder: viewModel.kanbanColumnOrder,
+                issueTypes: viewModel.issueTypes,
+                creationMetadata: viewModel.creationMetadata,
+                currentUser: viewModel.currentUser,
                 selectedIssueID: $router.selectedIssueID,
                 isRefreshing: viewModel.isRefreshing,
+                isLoadingIssueCreation: viewModel.isLoadingIssueCreation,
+                isCreatingIssue: viewModel.isCreatingIssue,
                 onRefresh: {
                     Task { await viewModel.refresh(router: router) }
                 },
@@ -77,6 +83,31 @@ struct MainWindowView: View {
                             projectID: router.selectedProjectID
                         )
                     }
+                },
+                onAssignIssueToCurrentUser: { issueID in
+                    Task {
+                        await viewModel.assignIssueToCurrentUser(issueID: issueID)
+                    }
+                },
+                onLoadIssueCreationOptions: {
+                    Task {
+                        await viewModel.loadIssueCreationOptions(projectID: router.selectedProjectID)
+                    }
+                },
+                onLoadCreationMetadata: { issueTypeID in
+                    Task {
+                        await viewModel.loadCreationMetadata(
+                            projectID: router.selectedProjectID,
+                            issueTypeID: issueTypeID
+                        )
+                    }
+                },
+                onCreateIssue: { draft in
+                    await viewModel.createIssue(
+                        projectID: router.selectedProjectID,
+                        draft: draft,
+                        router: router
+                    ) != nil
                 }
             )
             .inspector(isPresented: $isIssueInspectorPresented) {
@@ -103,7 +134,13 @@ struct MainWindowView: View {
             issue: selectedIssue,
             parentIssue: viewModel.parent(for: selectedIssue),
             subtasks: viewModel.subtasks(for: selectedIssue),
+            statusOptions: orderedStatusOptions,
             isLoadingChangelog: viewModel.isLoadingChangelog(for: selectedIssue?.id),
+            onChangeStatus: { issueID, status in
+                Task {
+                    await viewModel.moveIssue(id: issueID, toStatus: status, beforeIssueID: nil)
+                }
+            },
             onSelectIssue: { issueID in
                 router.selectedIssueID = issueID
             },
@@ -113,5 +150,14 @@ struct MainWindowView: View {
                 }
             }
         )
+    }
+
+    private var orderedStatusOptions: [String] {
+        let statusOptions = Array(Set(viewModel.issues.map(\.status))).sorted {
+            $0.localizedStandardCompare($1) == .orderedAscending
+        }
+        let knownStatuses = viewModel.kanbanColumnOrder.filter { statusOptions.contains($0) }
+        let newStatuses = statusOptions.filter { !knownStatuses.contains($0) }
+        return knownStatuses + newStatuses
     }
 }

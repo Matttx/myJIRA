@@ -15,7 +15,8 @@ struct MyJiraApp: App {
                     projectIssuesUseCase: container.projectIssuesUseCase,
                     issueBoardUseCase: container.issueBoardUseCase,
                     issueHierarchyUseCase: container.issueHierarchyUseCase,
-                    issueDetailUseCase: container.issueDetailUseCase
+                    issueDetailUseCase: container.issueDetailUseCase,
+                    issueCreationUseCase: container.issueCreationUseCase
                 ),
                 router: router
             )

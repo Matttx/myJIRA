@@ -3,15 +3,25 @@ import SwiftUI
 struct BacklogView: View {
     let issues: [Issue]
     let kanbanColumnOrder: [String]
+    let issueTypes: [IssueTypeMetadata]
+    let creationMetadata: IssueCreationMetadata?
+    let currentUser: JiraUser?
     @Binding var selectedIssueID: Issue.ID?
     let isRefreshing: Bool
+    let isLoadingIssueCreation: Bool
+    let isCreatingIssue: Bool
     let onRefresh: () -> Void
     let onMoveIssue: (Issue.ID, String, Issue.ID?) -> Void
     let onUpdateStoryPoints: (Issue.ID, Double?) -> Void
     let onMoveColumn: (String, String?) -> Void
+    let onAssignIssueToCurrentUser: (Issue.ID) -> Void
+    let onLoadIssueCreationOptions: () -> Void
+    let onLoadCreationMetadata: (IssueTypeMetadata.ID) -> Void
+    let onCreateIssue: (IssueCreationDraft) async -> Bool
     @State private var selectedFocus: BacklogFocus = .backlog
     @State private var selectedSprintFilter: SprintFilter = .all
     @State private var searchQuery = ""
+    @State private var isCreateIssuePresented = false
 
     var body: some View {
         VStack(spacing: 16) {
@@ -47,6 +57,17 @@ struct BacklogView: View {
             }
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .sheet(isPresented: $isCreateIssuePresented) {
+            CreateIssueSheet(
+                issueTypes: issueTypes,
+                creationMetadata: creationMetadata,
+                isLoading: isLoadingIssueCreation,
+                isCreating: isCreatingIssue,
+                onLoadIssueTypes: onLoadIssueCreationOptions,
+                onLoadMetadata: onLoadCreationMetadata,
+                onCreate: onCreateIssue
+            )
+        }
     }
 
     private var availableIssues: [Issue] {
@@ -103,7 +124,8 @@ struct BacklogView: View {
             .map { title, issues in
                 IssueGroup(
                     title: title,
-                    issues: issues.sorted { $0.updatedAt > $1.updatedAt }
+                    sprintID: issues.first?.sprintID,
+                    issues: issues
                 )
             }
             .sorted { lhs, rhs in
@@ -161,7 +183,17 @@ struct BacklogView: View {
                     }
                 }
 
-                
+                Button {
+                    isCreateIssuePresented = true
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.labelM)
+                }
+                .buttonStyle(.borderless)
+                .frame(width: 28, height: 28)
+                .background(JiraDesign.surface)
+                .clipShape(.capsule)
+                .help("Create issue")
 
                 Button(action: onRefresh) {
                     if isRefreshing {
@@ -214,12 +246,25 @@ struct BacklogView: View {
                                     },
                                     onUpdateStoryPoints: { storyPoints in
                                         onUpdateStoryPoints(issue.id, storyPoints)
+                                    },
+                                    onAssignToCurrentUser: {
+                                        onAssignIssueToCurrentUser(issue.id)
                                     }
                                 )
                                 .onTapGesture {
                                     selectedIssueID = issue.id
                                 }
                             }
+
+                            InlineIssueComposer(
+                                issueTypes: issueTypes,
+                                currentUser: currentUser,
+                                defaultStatus: orderedStatusOptions.first,
+                                targetSprintID: group.sprintID,
+                                onLoadIssueTypes: onLoadIssueCreationOptions,
+                                onLoadMetadata: onLoadCreationMetadata,
+                                onCreate: onCreateIssue
+                            )
                         }
                     }
                 }
@@ -294,566 +339,5 @@ struct BacklogView: View {
         }
 
         selectedIssueID = exactMatch?.id ?? filteredIssues.first?.id
-    }
-}
-
-private struct IssueGroup: Identifiable {
-    var id: String { title }
-    let title: String
-    let issues: [Issue]
-}
-
-private struct JiraSearchField: View {
-    @Binding var text: String
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .font(.paragraphS)
-                .foregroundStyle(.secondary)
-
-            TextField("Search ticket", text: $text)
-                .textFieldStyle(.plain)
-                .font(.paragraphS)
-
-            if !text.isEmpty {
-                Button {
-                    text = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.paragraphS)
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .help("Clear search")
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(JiraDesign.surface)
-        .clipShape(.capsule)
-    }
-}
-
-private struct KanbanColumn: Identifiable {
-    var id: String { title }
-    let title: String
-    let issues: [Issue]
-}
-
-private enum BacklogFocus: String, CaseIterable, Identifiable {
-    case backlog
-    case kanban
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .backlog:
-            "Backlog"
-        case .kanban:
-            "Kanban"
-        }
-    }
-}
-
-private enum SprintFilter: Hashable, Identifiable {
-    case all
-    case backlog
-    case sprint(String)
-
-    var id: String {
-        switch self {
-        case .all:
-            "all"
-        case .backlog:
-            "backlog"
-        case .sprint(let name):
-            "sprint:\(name)"
-        }
-    }
-
-    var title: String {
-        switch self {
-        case .all:
-            "All"
-        case .backlog:
-            "Backlog"
-        case .sprint(let name):
-            name
-        }
-    }
-}
-
-private struct KanbanBoardView: View {
-    let columns: [KanbanColumn]
-    @Binding var selectedIssueID: Issue.ID?
-    let onMoveIssue: (Issue.ID, String, Issue.ID?) -> Void
-    let onMoveColumn: (String, String?) -> Void
-
-    var body: some View {
-        ScrollView(.horizontal) {
-            HStack(alignment: .top, spacing: 0) {
-                ForEach(columns) { column in
-                    KanbanColumnDropSlot(
-                        beforeColumnTitle: column.title,
-                        onMoveColumn: onMoveColumn
-                    )
-
-                    KanbanColumnView(
-                        column: column,
-                        selectedIssueID: $selectedIssueID,
-                        onMoveIssue: onMoveIssue
-                    )
-                    .draggable(KanbanColumnDragPayload.prefix + column.title)
-                }
-
-                KanbanColumnDropSlot(
-                    beforeColumnTitle: nil,
-                    onMoveColumn: onMoveColumn
-                )
-            }
-            .padding(.horizontal, 18)
-            .padding(.bottom, 18)
-        }
-        .scrollIndicators(.hidden)
-    }
-}
-
-private struct KanbanColumnDropSlot: View {
-    let beforeColumnTitle: String?
-    let onMoveColumn: (String, String?) -> Void
-    @State private var isTargeted = false
-
-    var body: some View {
-        RoundedRectangle(cornerRadius: JiraDesign.compactRadius, style: .continuous)
-            .fill(isTargeted ? JiraDesign.accent : Color.clear)
-            .frame(width: isTargeted ? 4 : 1)
-            .frame(maxHeight: .infinity)
-            .padding(.horizontal, isTargeted ? 8 : 6)
-            .contentShape(Rectangle())
-            .dropDestination(for: String.self) { payloads, _ in
-                guard
-                    let payload = payloads.first,
-                    let draggedColumnTitle = KanbanColumnDragPayload.title(from: payload),
-                    draggedColumnTitle != beforeColumnTitle
-                else {
-                    return false
-                }
-
-                onMoveColumn(draggedColumnTitle, beforeColumnTitle)
-                return true
-            } isTargeted: { targeted in
-                withAnimation(.easeInOut(duration: 0.12)) {
-                    isTargeted = targeted
-                }
-            }
-    }
-}
-
-private enum KanbanColumnDragPayload {
-    static let prefix = "myjira-column:"
-
-    static func title(from payload: String) -> String? {
-        guard payload.hasPrefix(prefix) else { return nil }
-        return String(payload.dropFirst(prefix.count))
-    }
-}
-
-private struct KanbanColumnView: View {
-    let column: KanbanColumn
-    @Binding var selectedIssueID: Issue.ID?
-    let onMoveIssue: (Issue.ID, String, Issue.ID?) -> Void
-
-    var body: some View {
-        let statusColor = JiraStatusColor.resolved(for: column.title)
-
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                Circle()
-                    .fill(statusColor.accent)
-                    .frame(width: 8, height: 8)
-
-                Text(column.title.uppercased())
-                    .font(.headingXS)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-
-                Text("\(column.issues.count)")
-                    .font(.labelS)
-                    .foregroundStyle(statusColor.accent)
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 4)
-                    .background(statusColor.background)
-                    .clipShape(.capsule)
-            }
-            .padding(.horizontal, 4)
-            .overlay(alignment: .bottomLeading) {
-                Capsule()
-                    .fill(statusColor.accent.opacity(0.38))
-                    .frame(width: 36, height: 2)
-                    .offset(y: 8)
-            }
-
-            ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(column.issues) { issue in
-                        KanbanDropSlot(
-                            status: column.title,
-                            beforeIssueID: issue.id,
-                            selectedIssueID: $selectedIssueID,
-                            onMoveIssue: onMoveIssue
-                        )
-
-                        KanbanIssueCard(
-                            issue: issue,
-                            isSelected: selectedIssueID == issue.id
-                        )
-                        .onTapGesture {
-                            selectedIssueID = issue.id
-                        }
-                        .draggable(issue.id)
-                    }
-
-                    KanbanDropSlot(
-                        status: column.title,
-                        beforeIssueID: nil,
-                        selectedIssueID: $selectedIssueID,
-                        onMoveIssue: onMoveIssue,
-                        isEmptyColumn: column.issues.isEmpty
-                    )
-                }
-            }
-            .scrollIndicators(.never)
-        }
-        .frame(width: 300)
-        .frame(maxHeight: .infinity, alignment: .top)
-    }
-}
-
-private struct KanbanDropSlot: View {
-    let status: String
-    let beforeIssueID: Issue.ID?
-    @Binding var selectedIssueID: Issue.ID?
-    let onMoveIssue: (Issue.ID, String, Issue.ID?) -> Void
-    var isEmptyColumn = false
-    @State private var isTargeted = false
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: JiraDesign.compactRadius, style: .continuous)
-                .fill(isTargeted ? JiraDesign.accent : Color.clear)
-                .frame(height: isTargeted ? 4 : 1)
-                .padding(.horizontal, isTargeted ? 0 : 10)
-                .opacity(isTargeted ? 1 : 0)
-
-            if isEmptyColumn {
-                RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous)
-                    .strokeBorder(isTargeted ? JiraDesign.accent : JiraDesign.hairline, style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                    .frame(height: 88)
-                    .opacity(isTargeted ? 1 : 0.7)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: isEmptyColumn ? 96 : (isTargeted ? 18 : 8))
-        .contentShape(Rectangle())
-        .dropDestination(for: String.self) { issueIDs, _ in
-            guard
-                let issueID = issueIDs.first,
-                KanbanColumnDragPayload.title(from: issueID) == nil
-            else {
-                return false
-            }
-
-            onMoveIssue(issueID, status, beforeIssueID)
-            selectedIssueID = issueID
-            return true
-        } isTargeted: { targeted in
-            withAnimation(.easeInOut(duration: 0.12)) {
-                isTargeted = targeted
-            }
-        }
-    }
-}
-
-private struct KanbanIssueCard: View {
-    let issue: Issue
-    let isSelected: Bool
-
-    var body: some View {
-        let statusColor = JiraStatusColor.resolved(for: issue.status)
-
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                Text(issue.key)
-                    .font(.paragraphSSemiBold)
-                    .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
-
-                Spacer(minLength: 0)
-
-                if let sprintName = issue.sprintName {
-                    Text(sprintName)
-                        .font(.paragraphXS)
-                        .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
-                        .lineLimit(1)
-                }
-
-                if issue.subtaskCount > 0 {
-                    SubtaskCountBadge(count: issue.subtaskCount, isSelected: isSelected)
-                }
-            }
-
-            Text(issue.summary)
-                .font(.paragraphM)
-                .lineLimit(3)
-                .fixedSize(horizontal: false, vertical: true)
-
-            if let assigneeName = issue.assigneeName {
-                Text(assigneeName)
-                    .font(.paragraphS)
-                    .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-            }
-        }
-        .foregroundStyle(isSelected ? Color.foreground : Color.primary)
-        .padding(12)
-        .background(isSelected ? JiraDesign.accent : JiraDesign.surface)
-        .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
-        .overlay(alignment: .leading) {
-            RoundedRectangle(cornerRadius: 2, style: .continuous)
-                .fill(statusColor.accent.opacity(isSelected ? 0.9 : 0.7))
-                .frame(width: 3)
-                .padding(.vertical, 10)
-        }
-        .contentShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
-    }
-}
-
-private struct IssueRowView: View {
-    let issue: Issue
-    let isSelected: Bool
-    let statusOptions: [String]
-    let onChangeStatus: (String) -> Void
-    let onUpdateStoryPoints: (Double?) -> Void
-
-    var body: some View {
-        HStack(spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(issue.key)
-                    .font(.paragraphSSemiBold)
-                    .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
-
-                Text(issue.summary)
-                    .font(.paragraphM)
-                    .lineLimit(1)
-            }
-
-            Spacer()
-
-            EditableStoryPointsTag(
-                storyPoints: issue.storyPoints,
-                isSelected: isSelected,
-                onCommit: onUpdateStoryPoints
-            )
-
-            if let assigneeName = issue.assigneeName {
-                AssigneeAvatar(name: assigneeName, isSelected: isSelected)
-            }
-
-            if issue.subtaskCount > 0 {
-                SubtaskCountBadge(count: issue.subtaskCount, isSelected: isSelected)
-            }
-
-            JiraInlineValuePickerRow(selection: Binding(
-                get: { issue.status },
-                set: { status in
-                    guard status != issue.status else { return }
-                    onChangeStatus(status)
-                }
-            ), isProminent: isSelected, statusColor: JiraStatusColor.resolved(for: issue.status)) {
-                ForEach(statusOptions, id: \.self) { status in
-                    Text(status).tag(status)
-                }
-            }
-        }
-        .foregroundStyle(isSelected ? Color.foreground : Color.primary)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(isSelected ? JiraDesign.accent : JiraDesign.surface)
-        .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
-    }
-}
-
-private struct AssigneeAvatar: View {
-    let name: String
-    let isSelected: Bool
-    @State private var isHovering = false
-
-    var body: some View {
-        Text(initials)
-            .font(.labelS)
-            .foregroundStyle(isSelected ? Color.foreground : Color.primary)
-            .frame(width: 30, height: 30)
-            .background(isSelected ? Color.foreground.opacity(0.12) : JiraDesign.surface)
-            .clipShape(Circle())
-            .overlay {
-                Circle()
-                    .stroke(isSelected ? Color.foreground.opacity(0.18) : JiraDesign.hairline, lineWidth: 1)
-            }
-            .onHover { hovering in
-                withAnimation(.easeOut(duration: 0.12)) {
-                    isHovering = hovering
-                }
-            }
-            .popover(isPresented: $isHovering, arrowEdge: .top) {
-                Text(name)
-                    .font(.paragraphS)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                    .fixedSize(horizontal: true, vertical: false)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-            }
-    }
-
-    private var initials: String {
-        let parts = name
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .split(separator: " ")
-            .prefix(2)
-            .compactMap(\.first)
-
-        return parts.isEmpty ? "?" : String(parts).uppercased()
-    }
-}
-
-private struct EditableStoryPointsTag: View {
-    let storyPoints: Double?
-    let isSelected: Bool
-    let onCommit: (Double?) -> Void
-
-    @State private var isEditing = false
-    @State private var draftValue = ""
-    @FocusState private var isFocused: Bool
-
-    var body: some View {
-        Group {
-            if isEditing {
-                TextField("SP", text: $draftValue)
-                    .textFieldStyle(.plain)
-                    .font(.paragraphS)
-                    .foregroundStyle(.primary)
-                    .frame(width: 54)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(JiraDesign.foreground)
-                    .clipShape(.capsule)
-                    .focused($isFocused)
-                    .onSubmit(commit)
-                    .onChange(of: isFocused) { _, focused in
-                        guard !focused else { return }
-                        commit()
-                    }
-            } else {
-                Button {
-                    draftValue = storyPoints.map(Self.format) ?? ""
-                    isEditing = true
-                    isFocused = true
-                } label: {
-                    Text(storyPoints.map { "\(Self.format($0)) SP" } ?? "-")
-                        .font(.paragraphS)
-                        .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
-                        .lineLimit(1)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(isSelected ? Color.foreground.opacity(0.12) : JiraDesign.surface)
-                        .clipShape(.capsule)
-                }
-                .buttonStyle(.plain)
-                .help("Edit story points")
-            }
-        }
-        .onAppear {
-            guard !isEditing else { return }
-            draftValue = storyPoints.map(Self.format) ?? ""
-        }
-        .onChange(of: storyPoints) { _, nextStoryPoints in
-            guard !isEditing else { return }
-            draftValue = nextStoryPoints.map(Self.format) ?? ""
-        }
-    }
-
-    private func commit() {
-        guard isEditing else { return }
-        isEditing = false
-
-        let trimmed = draftValue.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: ".")
-        let normalized = trimmed.isEmpty ? nil : Double(trimmed)
-        guard normalized != storyPoints else { return }
-        onCommit(normalized)
-    }
-
-    private static func format(_ value: Double) -> String {
-        if value.rounded() == value {
-            return String(Int(value))
-        }
-        return String(format: "%.1f", value)
-    }
-}
-
-private struct SubtaskCountBadge: View {
-    let count: Int
-    let isSelected: Bool
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "checklist")
-                .font(.paragraphXS)
-            Text("\(count)")
-                .font(.paragraphXS)
-        }
-        .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(isSelected ? Color.foreground.opacity(0.12) : JiraDesign.surface)
-        .clipShape(.capsule)
-    }
-}
-
-private extension Issue {
-    var subtaskCount: Int {
-        subtaskIDs.count
-    }
-
-    var trimmedSprintName: String? {
-        guard let sprintName else { return nil }
-        let trimmed = sprintName.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? nil : trimmed
-    }
-
-    var isDoneSprint: Bool {
-        guard let sprintState else { return false }
-        let normalized = sprintState.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        return normalized == "closed" || normalized == "done"
-    }
-
-    var isCompletedIssue: Bool {
-        if statusCategoryKey?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "done" {
-            return true
-        }
-
-        let normalizedStatus = status
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-            .lowercased()
-
-        return ["done", "closed", "resolved", "termine", "terminee"].contains(normalizedStatus)
-    }
-
-    var isFutureSprint: Bool {
-        guard let sprintState else { return false }
-        return sprintState.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "future"
     }
 }

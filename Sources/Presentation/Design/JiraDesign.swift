@@ -108,6 +108,7 @@ struct JiraInlineValuePickerRow<SelectionValue: Hashable, Content: View>: View {
             .labelsHidden()
             .pickerStyle(.menu)
             .buttonStyle(.plain)
+            .tint(foregroundStyle)
         }
         .font(.paragraphS)
         .foregroundStyle(foregroundStyle)

@@ -30,6 +30,12 @@ final class LocalIssueRepository: IssueRepository, @unchecked Sendable {
         try await seedDataProvider.populate(database: database)
     }
 
+    func upsertIssue(_ issue: Issue) async throws {
+        try await database.writer.write { db in
+            try IssueRecord(issue: issue).upsert(db)
+        }
+    }
+
     func replaceIssues(projectID: Project.ID, issues: [Issue]) async throws {
         try await database.writer.write { db in
             let existingChangesByID = try IssueRecord
@@ -60,6 +66,17 @@ final class LocalIssueRepository: IssueRepository, @unchecked Sendable {
                 .filter(Column("id") == issueID)
                 .updateAll(db, [
                     Column("status").set(to: status),
+                    Column("updatedAt").set(to: Date())
+                ])
+        }
+    }
+
+    func updateAssignee(issueID: Issue.ID, assigneeName: String?) async throws {
+        _ = try await database.writer.write { db in
+            try IssueRecord
+                .filter(Column("id") == issueID)
+                .updateAll(db, [
+                    Column("assigneeName").set(to: assigneeName),
                     Column("updatedAt").set(to: Date())
                 ])
         }

@@ -115,6 +115,222 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
         }
     }
 
+    func issueTypes(for project: Project) async throws -> [IssueTypeMetadata] {
+        guard let token = try authService.currentToken() else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.atlassian.com"
+        components.path = "/ex/jira/\(project.workspaceID)/rest/api/3/issue/createmeta/\(project.key)/issuetypes"
+        components.queryItems = [
+            URLQueryItem(name: "maxResults", value: "100")
+        ]
+
+        guard let url = components.url else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidServerResponse
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            let message = String(data: data, encoding: .utf8) ?? "Unable to load Jira issue types."
+            throw AuthError.failedTokenExchange(message)
+        }
+
+        let page = try JSONDecoder().decode(JiraCreateIssueTypesPageDTO.self, from: data)
+        return page.issueTypes.map {
+            IssueTypeMetadata(id: $0.id, name: $0.name, isSubtask: $0.subtask)
+        }
+    }
+
+    func creationMetadata(for project: Project, issueTypeID: IssueTypeMetadata.ID) async throws -> IssueCreationMetadata {
+        guard let token = try authService.currentToken() else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.atlassian.com"
+        components.path = "/ex/jira/\(project.workspaceID)/rest/api/3/issue/createmeta/\(project.key)/issuetypes/\(issueTypeID)"
+        components.queryItems = [
+            URLQueryItem(name: "maxResults", value: "100")
+        ]
+
+        guard let url = components.url else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidServerResponse
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            let message = String(data: data, encoding: .utf8) ?? "Unable to load Jira create fields."
+            throw AuthError.failedTokenExchange(message)
+        }
+
+        let page = try JSONDecoder().decode(JiraCreateIssueFieldsPageDTO.self, from: data)
+        return IssueCreationMetadata(fields: page.fields.map(\.domainValue))
+    }
+
+    func createIssue(in project: Project, draft: IssueCreationDraft) async throws -> CreatedIssue {
+        guard let token = try authService.currentToken() else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.atlassian.com"
+        components.path = "/ex/jira/\(project.workspaceID)/rest/api/3/issue"
+
+        guard let url = components.url else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var fields: [String: Any] = [
+            "project": ["key": project.key],
+            "issuetype": ["id": draft.issueTypeID],
+            "summary": draft.summary.trimmingCharacters(in: .whitespacesAndNewlines)
+        ]
+
+        if let description = draft.descriptionText?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !description.isEmpty {
+            fields["description"] = adfDocument(text: description)
+        }
+
+        if let storyPoints = draft.storyPoints,
+           let fieldID = try await storyPointsFieldIDs(
+                projectKey: project.key,
+                accessToken: token.accessToken,
+                cloudID: project.workspaceID
+           ).first {
+            fields[fieldID] = NSNumber(value: storyPoints)
+        }
+
+        if draft.assignToCurrentUser {
+            let user = try await currentUser(cloudID: project.workspaceID)
+            fields["assignee"] = ["accountId": user.accountID]
+        }
+
+        let payload: [String: Any] = ["fields": fields]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        request.setValue("Bearer \(token.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidServerResponse
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            let message = String(data: data, encoding: .utf8) ?? "Unable to create Jira issue."
+            throw AuthError.failedTokenExchange(message)
+        }
+
+        let createdIssue = try JSONDecoder().decode(JiraCreatedIssueDTO.self, from: data)
+        if let targetSprintID = draft.targetSprintID {
+            try await moveIssue(
+                issueKey: createdIssue.key,
+                toSprintID: targetSprintID,
+                cloudID: project.workspaceID,
+                accessToken: token.accessToken
+            )
+        }
+
+        return CreatedIssue(id: "\(project.workspaceID):\(createdIssue.id)", key: createdIssue.key)
+    }
+
+    func currentUser(cloudID: String) async throws -> JiraUser {
+        guard let token = try authService.currentToken() else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.atlassian.com"
+        components.path = "/ex/jira/\(cloudID)/rest/api/3/myself"
+
+        guard let url = components.url else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidServerResponse
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            let message = String(data: data, encoding: .utf8) ?? "Unable to load Jira current user."
+            throw AuthError.failedTokenExchange(message)
+        }
+
+        let user = try JSONDecoder().decode(JiraUserDTO.self, from: data)
+        return JiraUser(accountID: user.accountId, displayName: user.displayName)
+    }
+
+    func assignIssueToCurrentUser(issue: Issue) async throws -> JiraUser {
+        guard let token = try authService.currentToken() else {
+            throw AuthError.invalidConfiguration
+        }
+        guard let cloudID = cloudID(from: issue) else {
+            throw AuthError.invalidConfiguration
+        }
+
+        let user = try await currentUser(cloudID: cloudID)
+
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.atlassian.com"
+        components.path = "/ex/jira/\(cloudID)/rest/api/3/issue/\(issue.key)/assignee"
+
+        guard let url = components.url else {
+            throw AuthError.invalidConfiguration
+        }
+
+        let payload: [String: Any] = ["accountId": user.accountID]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        request.setValue("Bearer \(token.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidServerResponse
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            let message = String(data: data, encoding: .utf8) ?? "Unable to assign Jira issue."
+            throw AuthError.failedTokenExchange(message)
+        }
+
+        return user
+    }
+
     func changelog(for issue: Issue) async throws -> [IssueChange] {
         guard let token = try authService.currentToken() else {
             throw AuthError.invalidConfiguration
@@ -772,6 +988,28 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
         issue.key.split(separator: "-", maxSplits: 1).first.map(String.init) ?? issue.key
     }
 
+    private func adfDocument(text: String) -> [String: Any] {
+        let paragraphs = text
+            .components(separatedBy: .newlines)
+            .map { line -> [String: Any] in
+                [
+                    "type": "paragraph",
+                    "content": line.isEmpty ? [] : [
+                        [
+                            "type": "text",
+                            "text": line
+                        ]
+                    ]
+                ]
+            }
+
+        return [
+            "type": "doc",
+            "version": 1,
+            "content": paragraphs
+        ]
+    }
+
     private var jiraDecoder: JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { decoder in
@@ -834,6 +1072,74 @@ private struct IssueDTO: Decodable {
     var id: String
     var key: String
     var fields: IssueFieldsDTO
+}
+
+private struct JiraCreateIssueTypesPageDTO: Decodable {
+    var issueTypes: [JiraCreateIssueTypeDTO]
+
+    private enum CodingKeys: String, CodingKey {
+        case issueTypes
+        case values
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        issueTypes = try values.decodeIfPresent([JiraCreateIssueTypeDTO].self, forKey: .issueTypes)
+            ?? values.decodeIfPresent([JiraCreateIssueTypeDTO].self, forKey: .values)
+            ?? []
+    }
+}
+
+private struct JiraCreateIssueTypeDTO: Decodable {
+    var id: String
+    var name: String
+    var subtask: Bool
+}
+
+private struct JiraCreateIssueFieldsPageDTO: Decodable {
+    var fields: [JiraCreateIssueFieldDTO]
+
+    private enum CodingKeys: String, CodingKey {
+        case fields
+        case results
+        case values
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        fields = try values.decodeIfPresent([JiraCreateIssueFieldDTO].self, forKey: .fields)
+            ?? values.decodeIfPresent([JiraCreateIssueFieldDTO].self, forKey: .results)
+            ?? values.decodeIfPresent([JiraCreateIssueFieldDTO].self, forKey: .values)
+            ?? []
+    }
+}
+
+private struct JiraCreateIssueFieldDTO: Decodable {
+    var fieldId: String
+    var name: String
+    var required: Bool
+    var hasDefaultValue: Bool?
+    var operations: [String]?
+
+    var domainValue: IssueCreationField {
+        IssueCreationField(
+            id: fieldId,
+            name: name,
+            isRequired: required,
+            hasDefaultValue: hasDefaultValue ?? false,
+            operations: operations ?? []
+        )
+    }
+}
+
+private struct JiraCreatedIssueDTO: Decodable {
+    var id: String
+    var key: String
+}
+
+private struct JiraUserDTO: Decodable {
+    var accountId: String
+    var displayName: String
 }
 
 private struct IssueFieldsDTO: Decodable {

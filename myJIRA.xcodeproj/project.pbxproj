@@ -33,6 +33,30 @@
 		10000000000000000000002C /* KanbanColumnOrderResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000012C /* KanbanColumnOrderResolver.swift */; };
 		10000000000000000000002D /* IssueDetailUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000012D /* IssueDetailUseCase.swift */; };
 		10000000000000000000002E /* IssueSprintValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000012E /* IssueSprintValue.swift */; };
+		10000000000000000000002F /* IssueCreation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000012F /* IssueCreation.swift */; };
+		100000000000000000000030 /* IssueCreationUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000130 /* IssueCreationUseCase.swift */; };
+		100000000000000000000031 /* BacklogModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000131 /* BacklogModels.swift */; };
+		100000000000000000000032 /* IssueDetailPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000132 /* IssueDetailPage.swift */; };
+		100000000000000000000033 /* IssuePresentationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000133 /* IssuePresentationExtensions.swift */; };
+		100000000000000000000034 /* JiraInitialsAvatar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000134 /* JiraInitialsAvatar.swift */; };
+		100000000000000000000035 /* JiraSearchField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000135 /* JiraSearchField.swift */; };
+		100000000000000000000036 /* SubtaskCountBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000136 /* SubtaskCountBadge.swift */; };
+		100000000000000000000037 /* EditableStoryPointsTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000137 /* EditableStoryPointsTag.swift */; };
+		100000000000000000000038 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000138 /* FlowLayout.swift */; };
+		100000000000000000000039 /* CreateIssueSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000139 /* CreateIssueSheet.swift */; };
+		10000000000000000000003A /* IssueRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000013A /* IssueRowView.swift */; };
+		10000000000000000000003B /* InlineIssueComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000013B /* InlineIssueComposer.swift */; };
+		10000000000000000000003C /* KanbanBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000013C /* KanbanBoardView.swift */; };
+		10000000000000000000003D /* KanbanColumnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000013D /* KanbanColumnView.swift */; };
+		10000000000000000000003E /* KanbanDropSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000013E /* KanbanDropSlot.swift */; };
+		10000000000000000000003F /* KanbanColumnDropSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000013F /* KanbanColumnDropSlot.swift */; };
+		100000000000000000000040 /* KanbanIssueCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000140 /* KanbanIssueCard.swift */; };
+		100000000000000000000041 /* KanbanColumnDragPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000141 /* KanbanColumnDragPayload.swift */; };
+		100000000000000000000042 /* CommentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000142 /* CommentRowView.swift */; };
+		100000000000000000000043 /* ChangeRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000143 /* ChangeRowView.swift */; };
+		100000000000000000000044 /* SubtaskRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000144 /* SubtaskRowView.swift */; };
+		100000000000000000000045 /* EndEditingOnOutsideClick.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000145 /* EndEditingOnOutsideClick.swift */; };
+		100000000000000000000046 /* IssueTypeIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000146 /* IssueTypeIcon.swift */; };
 		10000000000000000000000C /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010C /* AppDatabase.swift */; };
 		10000000000000000000000D /* Records.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010D /* Records.swift */; };
 		10000000000000000000000E /* LocalWorkspaceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010E /* LocalWorkspaceRepository.swift */; };
@@ -103,6 +127,30 @@
 		10000000000000000000012C /* KanbanColumnOrderResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanColumnOrderResolver.swift; sourceTree = "<group>"; };
 		10000000000000000000012D /* IssueDetailUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueDetailUseCase.swift; sourceTree = "<group>"; };
 		10000000000000000000012E /* IssueSprintValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueSprintValue.swift; sourceTree = "<group>"; };
+		10000000000000000000012F /* IssueCreation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCreation.swift; sourceTree = "<group>"; };
+		100000000000000000000130 /* IssueCreationUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCreationUseCase.swift; sourceTree = "<group>"; };
+		100000000000000000000131 /* BacklogModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacklogModels.swift; sourceTree = "<group>"; };
+		100000000000000000000132 /* IssueDetailPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueDetailPage.swift; sourceTree = "<group>"; };
+		100000000000000000000133 /* IssuePresentationExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssuePresentationExtensions.swift; sourceTree = "<group>"; };
+		100000000000000000000134 /* JiraInitialsAvatar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JiraInitialsAvatar.swift; sourceTree = "<group>"; };
+		100000000000000000000135 /* JiraSearchField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JiraSearchField.swift; sourceTree = "<group>"; };
+		100000000000000000000136 /* SubtaskCountBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtaskCountBadge.swift; sourceTree = "<group>"; };
+		100000000000000000000137 /* EditableStoryPointsTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableStoryPointsTag.swift; sourceTree = "<group>"; };
+		100000000000000000000138 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
+		100000000000000000000139 /* CreateIssueSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateIssueSheet.swift; sourceTree = "<group>"; };
+		10000000000000000000013A /* IssueRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueRowView.swift; sourceTree = "<group>"; };
+		10000000000000000000013B /* InlineIssueComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineIssueComposer.swift; sourceTree = "<group>"; };
+		10000000000000000000013C /* KanbanBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanBoardView.swift; sourceTree = "<group>"; };
+		10000000000000000000013D /* KanbanColumnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanColumnView.swift; sourceTree = "<group>"; };
+		10000000000000000000013E /* KanbanDropSlot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanDropSlot.swift; sourceTree = "<group>"; };
+		10000000000000000000013F /* KanbanColumnDropSlot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanColumnDropSlot.swift; sourceTree = "<group>"; };
+		100000000000000000000140 /* KanbanIssueCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanIssueCard.swift; sourceTree = "<group>"; };
+		100000000000000000000141 /* KanbanColumnDragPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanColumnDragPayload.swift; sourceTree = "<group>"; };
+		100000000000000000000142 /* CommentRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentRowView.swift; sourceTree = "<group>"; };
+		100000000000000000000143 /* ChangeRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeRowView.swift; sourceTree = "<group>"; };
+		100000000000000000000144 /* SubtaskRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtaskRowView.swift; sourceTree = "<group>"; };
+		100000000000000000000145 /* EndEditingOnOutsideClick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndEditingOnOutsideClick.swift; sourceTree = "<group>"; };
+		100000000000000000000146 /* IssueTypeIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueTypeIcon.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -168,6 +216,7 @@
 				100000000000000000000105 /* Project.swift */,
 				100000000000000000000106 /* Issue.swift */,
 				10000000000000000000012E /* IssueSprintValue.swift */,
+				10000000000000000000012F /* IssueCreation.swift */,
 			);
 			path = Entities;
 			sourceTree = "<group>";
@@ -254,6 +303,8 @@
 			isa = PBXGroup;
 			children = (
 				100000000000000000000312 /* Design */,
+				100000000000000000000318 /* Models */,
+				100000000000000000000319 /* Support */,
 				10000000000000000000030E /* ViewModels */,
 				100000000000000000000311 /* Views */,
 			);
@@ -290,6 +341,10 @@
 		100000000000000000000311 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				100000000000000000000314 /* Components */,
+				100000000000000000000315 /* Backlog */,
+				100000000000000000000316 /* Kanban */,
+				100000000000000000000317 /* IssueDetail */,
 				100000000000000000000118 /* MainWindowView.swift */,
 				100000000000000000000119 /* SidebarView.swift */,
 				10000000000000000000011A /* BacklogView.swift */,
@@ -298,6 +353,52 @@
 				10000000000000000000011C /* SettingsView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		100000000000000000000314 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000137 /* EditableStoryPointsTag.swift */,
+				100000000000000000000138 /* FlowLayout.swift */,
+				100000000000000000000146 /* IssueTypeIcon.swift */,
+				100000000000000000000134 /* JiraInitialsAvatar.swift */,
+				100000000000000000000135 /* JiraSearchField.swift */,
+				100000000000000000000136 /* SubtaskCountBadge.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		100000000000000000000315 /* Backlog */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000139 /* CreateIssueSheet.swift */,
+				10000000000000000000013B /* InlineIssueComposer.swift */,
+				10000000000000000000013A /* IssueRowView.swift */,
+			);
+			path = Backlog;
+			sourceTree = "<group>";
+		};
+		100000000000000000000316 /* Kanban */ = {
+			isa = PBXGroup;
+			children = (
+				10000000000000000000013C /* KanbanBoardView.swift */,
+				100000000000000000000141 /* KanbanColumnDragPayload.swift */,
+				10000000000000000000013F /* KanbanColumnDropSlot.swift */,
+				10000000000000000000013D /* KanbanColumnView.swift */,
+				10000000000000000000013E /* KanbanDropSlot.swift */,
+				100000000000000000000140 /* KanbanIssueCard.swift */,
+			);
+			path = Kanban;
+			sourceTree = "<group>";
+		};
+		100000000000000000000317 /* IssueDetail */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000143 /* ChangeRowView.swift */,
+				100000000000000000000142 /* CommentRowView.swift */,
+				100000000000000000000144 /* SubtaskRowView.swift */,
+			);
+			path = IssueDetail;
 			sourceTree = "<group>";
 		};
 		100000000000000000000312 /* Design */ = {
@@ -313,6 +414,7 @@
 			isa = PBXGroup;
 			children = (
 				10000000000000000000012A /* IssueBoardUseCase.swift */,
+				100000000000000000000130 /* IssueCreationUseCase.swift */,
 				10000000000000000000012B /* IssueHierarchyUseCase.swift */,
 				10000000000000000000012D /* IssueDetailUseCase.swift */,
 				100000000000000000000129 /* JiraSessionUseCase.swift */,
@@ -320,6 +422,24 @@
 				100000000000000000000128 /* ProjectIssuesUseCase.swift */,
 			);
 			path = UseCases;
+			sourceTree = "<group>";
+		};
+		100000000000000000000318 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000131 /* BacklogModels.swift */,
+				100000000000000000000132 /* IssueDetailPage.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		100000000000000000000319 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000145 /* EndEditingOnOutsideClick.swift */,
+				100000000000000000000133 /* IssuePresentationExtensions.swift */,
+			);
+			path = Support;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -405,10 +525,14 @@
 				100000000000000000000005 /* Project.swift in Sources */,
 				100000000000000000000006 /* Issue.swift in Sources */,
 				10000000000000000000002E /* IssueSprintValue.swift in Sources */,
+				10000000000000000000002F /* IssueCreation.swift in Sources */,
+				100000000000000000000031 /* BacklogModels.swift in Sources */,
+				100000000000000000000032 /* IssueDetailPage.swift in Sources */,
 				100000000000000000000007 /* WorkspaceRepository.swift in Sources */,
 				100000000000000000000008 /* IssueRepository.swift in Sources */,
 				100000000000000000000026 /* KanbanColumnOrderRepository.swift in Sources */,
 				10000000000000000000002A /* IssueBoardUseCase.swift in Sources */,
+				100000000000000000000030 /* IssueCreationUseCase.swift in Sources */,
 				10000000000000000000002B /* IssueHierarchyUseCase.swift in Sources */,
 				10000000000000000000002D /* IssueDetailUseCase.swift in Sources */,
 				100000000000000000000029 /* JiraSessionUseCase.swift in Sources */,
@@ -433,13 +557,33 @@
 				100000000000000000000015 /* JiraCloudDataService.swift in Sources */,
 				100000000000000000000016 /* PollingSyncService.swift in Sources */,
 				100000000000000000000017 /* MainWindowViewModel.swift in Sources */,
+				100000000000000000000045 /* EndEditingOnOutsideClick.swift in Sources */,
+				100000000000000000000033 /* IssuePresentationExtensions.swift in Sources */,
 				100000000000000000000018 /* MainWindowView.swift in Sources */,
 				100000000000000000000023 /* JiraFonts.swift in Sources */,
 				100000000000000000000024 /* JiraDesign.swift in Sources */,
+				100000000000000000000034 /* JiraInitialsAvatar.swift in Sources */,
+				100000000000000000000035 /* JiraSearchField.swift in Sources */,
+				100000000000000000000046 /* IssueTypeIcon.swift in Sources */,
+				100000000000000000000036 /* SubtaskCountBadge.swift in Sources */,
+				100000000000000000000037 /* EditableStoryPointsTag.swift in Sources */,
+				100000000000000000000038 /* FlowLayout.swift in Sources */,
 				100000000000000000000019 /* SidebarView.swift in Sources */,
 				10000000000000000000001A /* BacklogView.swift in Sources */,
+				100000000000000000000039 /* CreateIssueSheet.swift in Sources */,
+				10000000000000000000003A /* IssueRowView.swift in Sources */,
+				10000000000000000000003B /* InlineIssueComposer.swift in Sources */,
+				10000000000000000000003C /* KanbanBoardView.swift in Sources */,
+				10000000000000000000003D /* KanbanColumnView.swift in Sources */,
+				10000000000000000000003E /* KanbanDropSlot.swift in Sources */,
+				10000000000000000000003F /* KanbanColumnDropSlot.swift in Sources */,
+				100000000000000000000040 /* KanbanIssueCard.swift in Sources */,
+				100000000000000000000041 /* KanbanColumnDragPayload.swift in Sources */,
 				100000000000000000000021 /* ConnectJiraView.swift in Sources */,
 				10000000000000000000001B /* IssueDetailView.swift in Sources */,
+				100000000000000000000042 /* CommentRowView.swift in Sources */,
+				100000000000000000000043 /* ChangeRowView.swift in Sources */,
+				100000000000000000000044 /* SubtaskRowView.swift in Sources */,
 				10000000000000000000001C /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

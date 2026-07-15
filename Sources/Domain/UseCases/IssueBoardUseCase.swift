@@ -113,6 +113,20 @@ final class IssueBoardUseCase: @unchecked Sendable {
         try? await issueRepository.updateStoryPoints(issueID: issue.id, storyPoints: issue.storyPoints)
     }
 
+    func commitAssignToCurrentUser(issue: Issue) async throws -> Issue {
+        let user = try await jiraDataService.assignIssueToCurrentUser(issue: issue)
+        try await issueRepository.updateAssignee(issueID: issue.id, assigneeName: user.displayName)
+
+        var updatedIssue = issue
+        updatedIssue.assigneeName = user.displayName
+        updatedIssue.updatedAt = Date()
+        return updatedIssue
+    }
+
+    func rollbackAssignee(issue: Issue) async {
+        try? await issueRepository.updateAssignee(issueID: issue.id, assigneeName: issue.assigneeName)
+    }
+
     func moveColumn(
         _ title: String,
         before beforeTitle: String?,
