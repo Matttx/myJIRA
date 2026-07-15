@@ -7,6 +7,27 @@ struct JiraOAuthConfiguration: Sendable {
     var scopes: [String]
 }
 
+enum JiraOAuthScopes {
+    static let defaultScopes = [
+        "read:jira-user",
+        "read:jira-work",
+        "read:user:jira",
+        "read:project:jira",
+        "read:application-role:jira",
+        "read:avatar:jira",
+        "read:group:jira",
+        "write:jira-work",
+        "write:issue:jira",
+        "read:comment:jira",
+        "read:comment.property:jira",
+        "write:comment.property:jira",
+        "delete:issue:jira",
+        "delete:comment:jira",
+        "delete:comment.property:jira",
+        "offline_access"
+    ]
+}
+
 struct JiraTokenSet: Codable, Sendable {
     var accessToken: String
     var refreshToken: String?

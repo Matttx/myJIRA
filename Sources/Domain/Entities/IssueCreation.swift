@@ -39,6 +39,7 @@ struct IssueCreationDraft: Hashable, Sendable {
     var descriptionText: String?
     var storyPoints: Double?
     var targetSprintID: Int?
+    var parentIssueKey: String?
     var assignToCurrentUser: Bool
 }
 
@@ -50,4 +51,11 @@ struct CreatedIssue: Hashable, Sendable {
 struct JiraUser: Hashable, Sendable {
     var accountID: String
     var displayName: String
+    var avatarURL: URL?
+
+    init(accountID: String, displayName: String, avatarURL: URL? = nil) {
+        self.accountID = accountID
+        self.displayName = displayName
+        self.avatarURL = avatarURL
+    }
 }

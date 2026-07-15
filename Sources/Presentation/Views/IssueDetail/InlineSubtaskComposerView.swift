@@ -1,18 +1,15 @@
 import SwiftUI
 
-struct InlineIssueComposer: View {
+struct InlineSubtaskComposerView: View {
     let issueTypes: [IssueTypeMetadata]
     let currentUser: JiraUser?
-    let defaultStatus: String?
-    let targetSprintID: Int?
+    let isCreating: Bool
     let onLoadIssueTypes: () -> Void
-    let onLoadMetadata: (IssueTypeMetadata.ID) -> Void
     let onCreate: (IssueCreationDraft) async -> Bool
 
     @State private var isEditing = false
     @State private var selectedIssueTypeID: IssueTypeMetadata.ID?
     @State private var summary = ""
-    @State private var storyPoints = ""
     @State private var shouldAssignToMe = false
     @FocusState private var isSummaryFocused: Bool
 
@@ -25,55 +22,52 @@ struct InlineIssueComposer: View {
             }
         }
         .onChange(of: issueTypes) { _, nextTypes in
-            guard selectedIssueTypeID == nil, let firstType = nextTypes.first else { return }
-            selectedIssueTypeID = firstType.id
+            guard selectedIssueTypeID == nil else { return }
+            selectedIssueTypeID = nextTypes.first?.id
         }
     }
 
     private var createButton: some View {
-        HStack(spacing: 10) {
-            issueTypePicker
+        Button {
+            onLoadIssueTypes()
+            selectDefaultTypeIfNeeded()
+            isEditing = true
+            isSummaryFocused = true
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "plus")
+                    .font(.paragraphS)
+                    .frame(width: 30, height: 30)
+                    .background(JiraDesign.surface)
+                    .clipShape(Circle())
 
-            Button {
-                onLoadIssueTypes()
-                selectDefaultTypeIfNeeded()
-                isEditing = true
-                isSummaryFocused = true
-            } label: {
-                Text("Create issue")
+                Text("Create subtask")
                     .font(.paragraphM)
+
                 Spacer()
             }
-            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(JiraDesign.surface)
+            .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
         }
-        .foregroundStyle(.secondary)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(JiraDesign.surface)
-        .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
+        .buttonStyle(.plain)
     }
 
     private var editingRow: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             issueTypePicker
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(defaultStatus ?? "Default")
-                    .font(.paragraphSSemiBold)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+            TextField("Subtask title", text: $summary)
+                .textFieldStyle(.plain)
+                .font(.paragraphM)
+                .focused($isSummaryFocused)
+                .onSubmit {
+                    Task { await commit() }
+                }
 
-                TextField("What needs to be done?", text: $summary)
-                    .textFieldStyle(.plain)
-                    .font(.paragraphM)
-                    .focused($isSummaryFocused)
-                    .onSubmit {
-                        Task { await commit() }
-                    }
-            }
-
-            Spacer()
-            storyPointsField
+            Spacer(minLength: 8)
             assigneeToggle
             commitButton
             cancelButton
@@ -89,7 +83,6 @@ struct InlineIssueComposer: View {
             ForEach(issueTypes) { issueType in
                 Button {
                     selectedIssueTypeID = issueType.id
-                    onLoadMetadata(issueType.id)
                 } label: {
                     Label(issueType.name, systemImage: IssueTypeIcon.systemName(for: issueType.name))
                 }
@@ -100,28 +93,10 @@ struct InlineIssueComposer: View {
         .buttonStyle(.plain)
         .disabled(issueTypes.isEmpty)
         .frame(width: 30, height: 30)
-        .help(selectedIssueType?.name ?? "Issue type")
+        .help(selectedIssueType?.name ?? "Subtask type")
         .onTapGesture {
             onLoadIssueTypes()
         }
-    }
-
-    private var storyPointsField: some View {
-        HStack(spacing: 4) {
-            Text("SP")
-                .font(.labelS)
-                .foregroundStyle(.secondary)
-
-            TextField("-", text: $storyPoints)
-                .textFieldStyle(.plain)
-                .font(.paragraphS)
-                .frame(width: 18)
-        }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(JiraDesign.surface)
-            .clipShape(.capsule)
-            .help("Story points")
     }
 
     private var assigneeToggle: some View {
@@ -132,13 +107,15 @@ struct InlineIssueComposer: View {
                 JiraInitialsAvatar(name: currentUser?.displayName ?? "Me")
             } else {
                 Image(systemName: "person")
-                .frame(width: 30, height: 30)
-                .background(JiraDesign.surface)
-                .clipShape(Circle())
-                .overlay {
-                    Circle()
-                        .stroke(Color.foreground.opacity(0.18), lineWidth: 1)
-                }
+                    .font(.paragraphS)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 30, height: 30)
+                    .background(JiraDesign.surface)
+                    .clipShape(Circle())
+                    .overlay {
+                        Circle()
+                            .stroke(JiraDesign.hairline, lineWidth: 1)
+                    }
             }
         }
         .buttonStyle(.plain)
@@ -149,16 +126,20 @@ struct InlineIssueComposer: View {
         Button {
             Task { await commit() }
         } label: {
-            Image(systemName: "checkmark")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .font(.labelM)
+            if isCreating {
+                ProgressView()
+                    .controlSize(.small)
+            } else {
+                Image(systemName: "checkmark")
+                    .font(.labelM)
+            }
         }
         .buttonStyle(.plain)
         .frame(width: 28, height: 28)
         .background(canCommit ? JiraDesign.accent : JiraDesign.surface)
         .foregroundStyle(canCommit ? JiraDesign.foreground : .secondary)
         .clipShape(.capsule)
-        .disabled(!canCommit)
+        .disabled(!canCommit || isCreating)
         .help("Create")
     }
 
@@ -167,7 +148,6 @@ struct InlineIssueComposer: View {
             reset()
         } label: {
             Image(systemName: "xmark")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .font(.labelM)
         }
         .buttonStyle(.plain)
@@ -177,39 +157,25 @@ struct InlineIssueComposer: View {
         .help("Cancel")
     }
 
-    private var canCommit: Bool {
-        !summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && selectedIssueType != nil
-            && normalizedStoryPoints != nil
-    }
-
     private var selectedIssueType: IssueTypeMetadata? {
         let id = selectedIssueTypeID ?? issueTypes.first?.id
         return issueTypes.first { $0.id == id }
     }
 
-    private var normalizedStoryPoints: Double?? {
-        let trimmed = storyPoints.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: ".")
-        if trimmed.isEmpty {
-            return .some(nil)
-        }
-
-        guard let value = Double(trimmed) else {
-            return nil
-        }
-
-        return .some(value)
+    private var canCommit: Bool {
+        !summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && selectedIssueType != nil
     }
 
     private func commit() async {
-        guard canCommit, let issueType = selectedIssueType, let storyPoints = normalizedStoryPoints else { return }
+        guard canCommit, let issueType = selectedIssueType else { return }
 
         let created = await onCreate(IssueCreationDraft(
             issueTypeID: issueType.id,
             summary: summary,
             descriptionText: nil,
-            storyPoints: storyPoints,
-            targetSprintID: targetSprintID,
+            storyPoints: nil,
+            targetSprintID: nil,
             parentIssueKey: nil,
             assignToCurrentUser: shouldAssignToMe
         ))
@@ -222,7 +188,6 @@ struct InlineIssueComposer: View {
     private func reset() {
         isEditing = false
         summary = ""
-        storyPoints = ""
         shouldAssignToMe = false
     }
 

@@ -123,8 +123,44 @@ final class IssueBoardUseCase: @unchecked Sendable {
         return updatedIssue
     }
 
+    func commitAssign(issue: Issue, to user: JiraUser) async throws -> Issue {
+        try await jiraDataService.assignIssue(issue: issue, to: user)
+        try await issueRepository.updateAssignee(issueID: issue.id, assigneeName: user.displayName)
+
+        var updatedIssue = issue
+        updatedIssue.assigneeName = user.displayName
+        updatedIssue.updatedAt = Date()
+        return updatedIssue
+    }
+
+    func commitUnassign(issue: Issue) async throws -> Issue {
+        try await jiraDataService.unassignIssue(issue: issue)
+        try await issueRepository.updateAssignee(issueID: issue.id, assigneeName: nil)
+
+        var updatedIssue = issue
+        updatedIssue.assigneeName = nil
+        updatedIssue.updatedAt = Date()
+        return updatedIssue
+    }
+
     func rollbackAssignee(issue: Issue) async {
         try? await issueRepository.updateAssignee(issueID: issue.id, assigneeName: issue.assigneeName)
+    }
+
+    func commitDeleteIssue(_ issue: Issue, deleteSubtasks: Bool) async throws {
+        try await issueRepository.deleteIssue(issueID: issue.id)
+        if deleteSubtasks {
+            for subtaskID in issue.subtaskIDs {
+                try await issueRepository.deleteIssue(issueID: subtaskID)
+            }
+        }
+        try await jiraDataService.deleteIssue(issue, deleteSubtasks: deleteSubtasks)
+    }
+
+    func rollbackDeleteIssues(_ issues: [Issue]) async {
+        for issue in issues {
+            try? await issueRepository.upsertIssue(issue)
+        }
     }
 
     func moveColumn(

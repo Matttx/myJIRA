@@ -12,7 +12,7 @@ struct ChangeRowView: View {
                     Text(change.authorName ?? "Unknown")
                         .font(.paragraphSSemiBold)
 
-                    Text("updated \(change.fieldName)")
+                    Text(isDeletedComment ? "deleted a comment" : "updated \(change.fieldName)")
                         .font(.paragraphM)
                 }
 
@@ -20,12 +20,20 @@ struct ChangeRowView: View {
                     .font(.paragraphS)
                     .foregroundStyle(.secondary)
 
-                changeDiffView
+                if !isDeletedComment {
+                    changeDiffView
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var isDeletedComment: Bool {
+        change.fieldName.localizedCaseInsensitiveCompare("comment") == .orderedSame
+            && change.fromValue?.nilIfBlank != nil
+            && change.toValue?.nilIfBlank == nil
     }
 
     @ViewBuilder

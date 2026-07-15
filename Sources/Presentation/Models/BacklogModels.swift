@@ -7,6 +7,15 @@ struct IssueGroup: Identifiable {
     let issues: [Issue]
 }
 
+struct IssueSprintOption: Identifiable, Hashable {
+    var id: String {
+        sprintID.map { "sprint:\($0)" } ?? "backlog"
+    }
+
+    let sprintID: Int?
+    let title: String
+}
+
 struct KanbanColumn: Identifiable {
     var id: String { title }
     let title: String

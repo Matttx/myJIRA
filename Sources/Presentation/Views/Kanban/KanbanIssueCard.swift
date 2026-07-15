@@ -5,6 +5,11 @@ struct KanbanIssueCard: View {
     let issue: Issue
     let isSelected: Bool
     let onOpen: () -> Void
+    let onDelete: () -> Void
+    let onAssignToCurrentUser: () -> Void
+    let onUnassign: () -> Void
+    let assignableUsers: [JiraUser]
+    let onAssign: (JiraUser) -> Void
 
     @State private var isHovering = false
 
@@ -12,63 +17,50 @@ struct KanbanIssueCard: View {
         let statusColor = JiraStatusColor.resolved(for: issue.status)
 
         VStack(alignment: .leading, spacing: 10) {
-            metadataRow
 
-            Text(issue.summary)
-                .font(.paragraphM)
-                .lineLimit(3)
-                .fixedSize(horizontal: false, vertical: true)
-
+            HStack(alignment: .firstTextBaseline) {
+                Text(issue.summary)
+                    .font(.paragraphM)
+                    .lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
+                
+                Spacer(minLength: 0)
+                
+                actionMenu
+                    .opacity(isHovering ? 1 : 0)
+                    .allowsHitTesting(isHovering)
+                    .animation(.easeOut(duration: 0.12), value: isHovering)
+            }
+            
             footerRow
         }
         .foregroundStyle(isSelected ? Color.foreground : Color.primary)
         .padding(12)
         .background(isSelected ? JiraDesign.accent : JiraDesign.surface)
-        .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
         .overlay(alignment: .leading) {
             RoundedRectangle(cornerRadius: 2, style: .continuous)
                 .fill(statusColor.accent.opacity(isSelected ? 0.9 : 0.7))
                 .frame(width: 3)
-                .padding(.vertical, 10)
         }
+        .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
         .contentShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
         .onHover { hovering in
             withAnimation(.easeOut(duration: 0.12)) {
                 isHovering = hovering
             }
         }
-    }
-
-    private var metadataRow: some View {
-        HStack(spacing: 8) {
-            Text(issue.key)
-                .font(.paragraphSSemiBold)
-                .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
-
-            Spacer(minLength: 0)
-
-            if issue.subtaskCount > 0 {
-                SubtaskCountBadge(count: issue.subtaskCount, isSelected: isSelected)
-            }
-
-            actionMenu
-                .opacity(isHovering ? 1 : 0)
-                .allowsHitTesting(isHovering)
-                .animation(.easeOut(duration: 0.12), value: isHovering)
+        .contextMenu {
+            actionItems
         }
     }
 
     private var footerRow: some View {
         HStack(spacing: 8) {
+            Text(issue.key)
+                .font(.paragraphSSemiBold)
+                .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
+            
             Spacer(minLength: 0)
-
-            if let assigneeName = issue.assigneeName {
-                Text(assigneeName)
-                    .font(.paragraphS)
-                    .foregroundStyle(secondaryForeground)
-                    .lineLimit(1)
-                    .frame(maxWidth: 96, alignment: .trailing)
-            }
 
             if let sprintName = issue.trimmedSprintName {
                 Text(sprintName)
@@ -89,30 +81,25 @@ struct KanbanIssueCard: View {
                 .padding(.vertical, 4)
                 .background(footerBadgeBackground)
                 .clipShape(.capsule)
+            
+            if issue.subtaskCount > 0 {
+                SubtaskCountBadge(count: issue.subtaskCount, isSelected: isSelected)
+            }
+            
+            AssigneeAvatarButton(
+                assigneeName: issue.assigneeName,
+                isSelected: isSelected,
+                assignableUsers: assignableUsers,
+                onAssignToCurrentUser: onAssignToCurrentUser,
+                onUnassign: onUnassign,
+                onAssign: onAssign
+            )
         }
     }
 
     private var actionMenu: some View {
         Menu {
-            Button {
-                onOpen()
-            } label: {
-                Label("Open", systemImage: "arrow.up.right.square")
-            }
-
-            Button {
-                onOpen()
-            } label: {
-                Label("Edit", systemImage: "square.and.pencil")
-            }
-
-            Divider()
-
-            Button(role: .destructive) {
-            } label: {
-                Label("Delete", systemImage: "trash")
-            }
-            .disabled(true)
+            actionItems
         } label: {
             Image(systemName: "ellipsis")
                 .font(.paragraphS)
@@ -123,6 +110,29 @@ struct KanbanIssueCard: View {
         }
         .buttonStyle(.plain)
         .help("Issue actions")
+    }
+
+    @ViewBuilder
+    private var actionItems: some View {
+        Button {
+            onOpen()
+        } label: {
+            Label("Open", systemImage: "arrow.up.right.square")
+        }
+
+        Button {
+            onOpen()
+        } label: {
+            Label("Edit", systemImage: "square.and.pencil")
+        }
+
+        Divider()
+
+        Button(role: .destructive) {
+            onDelete()
+        } label: {
+            Label("Delete", systemImage: "trash")
+        }
     }
 
     private var secondaryForeground: Color {

@@ -57,6 +57,12 @@
 		100000000000000000000044 /* SubtaskRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000144 /* SubtaskRowView.swift */; };
 		100000000000000000000045 /* EndEditingOnOutsideClick.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000145 /* EndEditingOnOutsideClick.swift */; };
 		100000000000000000000046 /* IssueTypeIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000146 /* IssueTypeIcon.swift */; };
+		100000000000000000000047 /* CommentComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000147 /* CommentComposerView.swift */; };
+		100000000000000000000048 /* EditableIssueText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000148 /* EditableIssueText.swift */; };
+		100000000000000000000049 /* AssigneeAvatarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000149 /* AssigneeAvatarButton.swift */; };
+		10000000000000000000004A /* ProjectViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000014A /* ProjectViewModel.swift */; };
+		10000000000000000000004B /* ProjectUsersManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000014B /* ProjectUsersManager.swift */; };
+		10000000000000000000004C /* InlineSubtaskComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000014C /* InlineSubtaskComposerView.swift */; };
 		10000000000000000000000C /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010C /* AppDatabase.swift */; };
 		10000000000000000000000D /* Records.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010D /* Records.swift */; };
 		10000000000000000000000E /* LocalWorkspaceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010E /* LocalWorkspaceRepository.swift */; };
@@ -151,6 +157,12 @@
 		100000000000000000000144 /* SubtaskRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtaskRowView.swift; sourceTree = "<group>"; };
 		100000000000000000000145 /* EndEditingOnOutsideClick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndEditingOnOutsideClick.swift; sourceTree = "<group>"; };
 		100000000000000000000146 /* IssueTypeIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueTypeIcon.swift; sourceTree = "<group>"; };
+		100000000000000000000147 /* CommentComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentComposerView.swift; sourceTree = "<group>"; };
+		100000000000000000000148 /* EditableIssueText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableIssueText.swift; sourceTree = "<group>"; };
+		100000000000000000000149 /* AssigneeAvatarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssigneeAvatarButton.swift; sourceTree = "<group>"; };
+		10000000000000000000014A /* ProjectViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectViewModel.swift; sourceTree = "<group>"; };
+		10000000000000000000014B /* ProjectUsersManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectUsersManager.swift; sourceTree = "<group>"; };
+		10000000000000000000014C /* InlineSubtaskComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineSubtaskComposerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -315,6 +327,7 @@
 			isa = PBXGroup;
 			children = (
 				100000000000000000000117 /* MainWindowViewModel.swift */,
+				10000000000000000000014A /* ProjectViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -359,6 +372,7 @@
 			isa = PBXGroup;
 			children = (
 				100000000000000000000137 /* EditableStoryPointsTag.swift */,
+				100000000000000000000149 /* AssigneeAvatarButton.swift */,
 				100000000000000000000138 /* FlowLayout.swift */,
 				100000000000000000000146 /* IssueTypeIcon.swift */,
 				100000000000000000000134 /* JiraInitialsAvatar.swift */,
@@ -395,7 +409,10 @@
 			isa = PBXGroup;
 			children = (
 				100000000000000000000143 /* ChangeRowView.swift */,
+				100000000000000000000147 /* CommentComposerView.swift */,
 				100000000000000000000142 /* CommentRowView.swift */,
+				100000000000000000000148 /* EditableIssueText.swift */,
+				10000000000000000000014C /* InlineSubtaskComposerView.swift */,
 				100000000000000000000144 /* SubtaskRowView.swift */,
 			);
 			path = IssueDetail;
@@ -420,6 +437,7 @@
 				100000000000000000000129 /* JiraSessionUseCase.swift */,
 				10000000000000000000012C /* KanbanColumnOrderResolver.swift */,
 				100000000000000000000128 /* ProjectIssuesUseCase.swift */,
+				10000000000000000000014B /* ProjectUsersManager.swift */,
 			);
 			path = UseCases;
 			sourceTree = "<group>";
@@ -538,6 +556,7 @@
 				100000000000000000000029 /* JiraSessionUseCase.swift in Sources */,
 				10000000000000000000002C /* KanbanColumnOrderResolver.swift in Sources */,
 				100000000000000000000028 /* ProjectIssuesUseCase.swift in Sources */,
+				10000000000000000000004B /* ProjectUsersManager.swift in Sources */,
 				100000000000000000000009 /* AuthService.swift in Sources */,
 				10000000000000000000000A /* JiraDataService.swift in Sources */,
 				10000000000000000000001F /* JiraConnectionService.swift in Sources */,
@@ -557,6 +576,7 @@
 				100000000000000000000015 /* JiraCloudDataService.swift in Sources */,
 				100000000000000000000016 /* PollingSyncService.swift in Sources */,
 				100000000000000000000017 /* MainWindowViewModel.swift in Sources */,
+				10000000000000000000004A /* ProjectViewModel.swift in Sources */,
 				100000000000000000000045 /* EndEditingOnOutsideClick.swift in Sources */,
 				100000000000000000000033 /* IssuePresentationExtensions.swift in Sources */,
 				100000000000000000000018 /* MainWindowView.swift in Sources */,
@@ -567,6 +587,7 @@
 				100000000000000000000046 /* IssueTypeIcon.swift in Sources */,
 				100000000000000000000036 /* SubtaskCountBadge.swift in Sources */,
 				100000000000000000000037 /* EditableStoryPointsTag.swift in Sources */,
+				100000000000000000000049 /* AssigneeAvatarButton.swift in Sources */,
 				100000000000000000000038 /* FlowLayout.swift in Sources */,
 				100000000000000000000019 /* SidebarView.swift in Sources */,
 				10000000000000000000001A /* BacklogView.swift in Sources */,
@@ -581,6 +602,9 @@
 				100000000000000000000041 /* KanbanColumnDragPayload.swift in Sources */,
 				100000000000000000000021 /* ConnectJiraView.swift in Sources */,
 				10000000000000000000001B /* IssueDetailView.swift in Sources */,
+				100000000000000000000047 /* CommentComposerView.swift in Sources */,
+				100000000000000000000048 /* EditableIssueText.swift in Sources */,
+				10000000000000000000004C /* InlineSubtaskComposerView.swift in Sources */,
 				100000000000000000000042 /* CommentRowView.swift in Sources */,
 				100000000000000000000043 /* ChangeRowView.swift in Sources */,
 				100000000000000000000044 /* SubtaskRowView.swift in Sources */,

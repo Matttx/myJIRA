@@ -5,6 +5,11 @@ struct KanbanBoardView: View {
     @Binding var selectedIssueID: Issue.ID?
     let onMoveIssue: (Issue.ID, String, Issue.ID?) -> Void
     let onMoveColumn: (String, String?) -> Void
+    let onDeleteIssue: (Issue) -> Void
+    let onAssignIssueToCurrentUser: (Issue.ID) -> Void
+    let onUnassignIssue: (Issue.ID) -> Void
+    let assignableUsers: [JiraUser]
+    let onAssignIssue: (Issue.ID, JiraUser) -> Void
 
     var body: some View {
         ScrollView(.horizontal) {
@@ -18,7 +23,12 @@ struct KanbanBoardView: View {
                     KanbanColumnView(
                         column: column,
                         selectedIssueID: $selectedIssueID,
-                        onMoveIssue: onMoveIssue
+                        onMoveIssue: onMoveIssue,
+                        onDeleteIssue: onDeleteIssue,
+                        onAssignIssueToCurrentUser: onAssignIssueToCurrentUser,
+                        onUnassignIssue: onUnassignIssue,
+                        assignableUsers: assignableUsers,
+                        onAssignIssue: onAssignIssue
                     )
                     .draggable(KanbanColumnDragPayload.prefix + column.title)
                 }

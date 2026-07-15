@@ -2,6 +2,8 @@ import SwiftUI
 
 struct CreateIssueSheet: View {
     let issueTypes: [IssueTypeMetadata]
+    let sprintOptions: [IssueSprintOption]
+    let initialTargetSprintID: Int?
     let creationMetadata: IssueCreationMetadata?
     let isLoading: Bool
     let isCreating: Bool
@@ -14,8 +16,10 @@ struct CreateIssueSheet: View {
     @State private var summary = ""
     @State private var descriptionText = ""
     @State private var storyPoints = ""
+    @State private var selectedTargetSprintID: Int?
     @State private var shouldAssignToMe = false
     @State private var didRequestInitialLoad = false
+    @FocusState private var isSummaryFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -30,6 +34,9 @@ struct CreateIssueSheet: View {
         .onChange(of: issueTypes) { _, nextTypes in
             guard selectedIssueTypeID == nil else { return }
             selectedIssueTypeID = nextTypes.first?.id
+        }
+        .task {
+            isSummaryFocused = true
         }
     }
 
@@ -53,6 +60,10 @@ struct CreateIssueSheet: View {
 
     private var formFields: some View {
         VStack(alignment: .leading, spacing: 12) {
+            TextField("Summary", text: $summary)
+                .jiraCapsuleFieldStyle()
+                .focused($isSummaryFocused)
+
             HStack(spacing: 10) {
                 IssueTypeIcon(name: selectedIssueType?.name)
 
@@ -69,15 +80,14 @@ struct CreateIssueSheet: View {
                 }
                 .disabled(issueTypes.isEmpty || isLoading || isCreating)
 
-                TextField("-", text: $storyPoints)
-                    .textFieldStyle(.plain)
-                    .font(.paragraphS)
-                    .frame(width: 44)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 8)
-                    .background(JiraDesign.surface)
-                    .clipShape(.capsule)
-                    .help("Story points")
+                JiraInlineValuePickerRow("Sprint", selection: $selectedTargetSprintID) {
+                    ForEach(sprintOptions) { option in
+                        Text(option.title).tag(option.sprintID)
+                    }
+                }
+                .disabled(sprintOptions.count <= 1 || isCreating)
+
+                storyPointsField
 
                 Button {
                     shouldAssignToMe.toggle()
@@ -95,9 +105,6 @@ struct CreateIssueSheet: View {
                 .buttonStyle(.plain)
                 .help(shouldAssignToMe ? "Leave unassigned" : "Assign to me")
             }
-
-            TextField("Summary", text: $summary)
-                .jiraCapsuleFieldStyle()
 
             TextEditor(text: $descriptionText)
                 .font(.paragraphM)
@@ -117,6 +124,24 @@ struct CreateIssueSheet: View {
                     }
                 }
         }
+    }
+
+    private var storyPointsField: some View {
+        HStack(spacing: 6) {
+            Text("SP")
+                .font(.labelS)
+                .foregroundStyle(.secondary)
+
+            TextField("-", text: $storyPoints)
+                .textFieldStyle(.plain)
+                .font(.paragraphS)
+                .frame(width: 34)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(JiraDesign.surface)
+        .clipShape(.capsule)
+        .help("Story points")
     }
 
     @ViewBuilder
@@ -209,6 +234,7 @@ struct CreateIssueSheet: View {
         guard !didRequestInitialLoad else { return }
         didRequestInitialLoad = true
         selectedIssueTypeID = selectedIssueTypeID ?? issueTypes.first?.id
+        selectedTargetSprintID = initialTargetSprintID
         onLoadIssueTypes()
     }
 
@@ -220,7 +246,8 @@ struct CreateIssueSheet: View {
             summary: summary,
             descriptionText: descriptionText,
             storyPoints: storyPoints,
-            targetSprintID: nil,
+            targetSprintID: selectedTargetSprintID,
+            parentIssueKey: nil,
             assignToCurrentUser: shouldAssignToMe
         ))
 

@@ -75,7 +75,7 @@ struct ConnectJiraView: View {
             clientID: clientID,
             clientSecret: clientSecret,
             redirectURI: redirectURL,
-            scopes: ["read:jira-user", "read:jira-work", "write:jira-work", "offline_access"]
+            scopes: JiraOAuthScopes.defaultScopes
         ))
     }
 

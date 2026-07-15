@@ -3,6 +3,7 @@ import Foundation
 final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     private let issueFetchLimit = 200
     private let changelogFetchLimit = 50
+    private let replyParentPropertyKey = "myjira.parentCommentId"
     private let authService: AuthService
     private let urlSession: URLSession
 
@@ -85,7 +86,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
             storyPointsFieldIDs: storyPointsFieldIDs
         )
 
-        return issueDTOs.map { issue in
+        var issues = issueDTOs.map { issue in
             Issue(
                 id: "\(project.workspaceID):\(issue.id)",
                 key: issue.key,
@@ -113,6 +114,27 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
                 updatedAt: issue.fields.updated
             )
         }
+
+        let parentIDsByCommentID = (try? await commentParentIDs(
+            from: issues.flatMap(\.comments).map(\.id),
+            cloudID: project.workspaceID,
+            accessToken: token.accessToken
+        )) ?? [:]
+
+        if parentIDsByCommentID.isEmpty == false {
+            for issueIndex in issues.indices {
+                for commentIndex in issues[issueIndex].comments.indices {
+                    let commentID = issues[issueIndex].comments[commentIndex].id
+                    guard issues[issueIndex].comments[commentIndex].parentID == nil,
+                          let parentID = parentIDsByCommentID[commentID]
+                    else { continue }
+
+                    issues[issueIndex].comments[commentIndex].parentID = parentID
+                }
+            }
+        }
+
+        return issues
     }
 
     func issueTypes(for project: Project) async throws -> [IssueTypeMetadata] {
@@ -207,6 +229,10 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
             "summary": draft.summary.trimmingCharacters(in: .whitespacesAndNewlines)
         ]
 
+        if let parentIssueKey = draft.parentIssueKey {
+            fields["parent"] = ["key": parentIssueKey]
+        }
+
         if let description = draft.descriptionText?.trimmingCharacters(in: .whitespacesAndNewlines),
            !description.isEmpty {
             fields["description"] = adfDocument(text: description)
@@ -287,18 +313,70 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
         }
 
         let user = try JSONDecoder().decode(JiraUserDTO.self, from: data)
-        return JiraUser(accountID: user.accountId, displayName: user.displayName)
+        return user.domainValue
+    }
+
+    func assignableUsers(for project: Project) async throws -> [JiraUser] {
+        guard let token = try authService.currentToken() else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.atlassian.com"
+        components.path = "/ex/jira/\(project.workspaceID)/rest/api/3/user/assignable/multiProjectSearch"
+        components.queryItems = [
+            URLQueryItem(name: "projectKeys", value: project.key),
+            URLQueryItem(name: "startAt", value: "0"),
+            URLQueryItem(name: "maxResults", value: "1000")
+        ]
+
+        guard let url = components.url else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidServerResponse
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            let message = String(data: data, encoding: .utf8) ?? "Unable to load Jira project users."
+            throw AuthError.failedTokenExchange(message)
+        }
+
+        return try JSONDecoder().decode([JiraUserDTO].self, from: data).map(\.domainValue)
     }
 
     func assignIssueToCurrentUser(issue: Issue) async throws -> JiraUser {
+        guard let cloudID = cloudID(from: issue) else {
+            throw AuthError.invalidConfiguration
+        }
+
+        let user = try await currentUser(cloudID: cloudID)
+        try await assignIssue(issue: issue, to: user)
+        return user
+    }
+
+    func assignIssue(issue: Issue, to user: JiraUser) async throws {
+        try await updateIssueAssignee(issue: issue, accountID: user.accountID)
+    }
+
+    func unassignIssue(issue: Issue) async throws {
+        try await updateIssueAssignee(issue: issue, accountID: nil)
+    }
+
+    private func updateIssueAssignee(issue: Issue, accountID: String?) async throws {
         guard let token = try authService.currentToken() else {
             throw AuthError.invalidConfiguration
         }
         guard let cloudID = cloudID(from: issue) else {
             throw AuthError.invalidConfiguration
         }
-
-        let user = try await currentUser(cloudID: cloudID)
 
         var components = URLComponents()
         components.scheme = "https"
@@ -309,11 +387,10 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
             throw AuthError.invalidConfiguration
         }
 
-        let payload: [String: Any] = ["accountId": user.accountID]
-
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
-        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        let assigneeValue: Any = accountID ?? NSNull()
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["accountId": assigneeValue])
         request.setValue("Bearer \(token.accessToken)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -327,8 +404,6 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
             let message = String(data: data, encoding: .utf8) ?? "Unable to assign Jira issue."
             throw AuthError.failedTokenExchange(message)
         }
-
-        return user
     }
 
     func changelog(for issue: Issue) async throws -> [IssueChange] {
@@ -344,6 +419,136 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
             cloudID: cloudID,
             accessToken: token.accessToken
         )
+    }
+
+    func addComment(issue: Issue, bodyText: String, replyTo parentComment: IssueComment?) async throws -> IssueComment {
+        guard let token = try authService.currentToken() else {
+            throw AuthError.invalidConfiguration
+        }
+        guard let cloudID = cloudID(from: issue) else {
+            throw AuthError.invalidConfiguration
+        }
+
+        let trimmedBody = bodyText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedBody.isEmpty else {
+            throw AuthError.failedTokenExchange("Comment cannot be empty.")
+        }
+
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.atlassian.com"
+        components.path = "/ex/jira/\(cloudID)/rest/api/3/issue/\(issue.key)/comment"
+
+        guard let url = components.url else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var payload: [String: Any] = [
+            "body": adfCommentDocument(text: trimmedBody, mentioning: parentComment)
+        ]
+
+        if let parentComment {
+            payload["properties"] = [
+                [
+                    "key": replyParentPropertyKey,
+                    "value": ["parentCommentId": parentComment.id]
+                ]
+            ]
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        request.setValue("Bearer \(token.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidServerResponse
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            let message = String(data: data, encoding: .utf8) ?? "Unable to add Jira comment."
+            throw AuthError.failedTokenExchange(message)
+        }
+
+        var comment = try jiraDecoder.decode(JiraCommentDTO.self, from: data).domainValue
+        if comment.parentID == nil {
+            comment.parentID = parentComment?.id
+        }
+        return comment
+    }
+
+    func deleteComment(issue: Issue, comment: IssueComment) async throws {
+        guard let token = try authService.currentToken() else {
+            throw AuthError.invalidConfiguration
+        }
+        guard let cloudID = cloudID(from: issue) else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.atlassian.com"
+        components.path = "/ex/jira/\(cloudID)/rest/api/3/issue/\(issue.key)/comment/\(comment.id)"
+
+        guard let url = components.url else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("Bearer \(token.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidServerResponse
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            let message = String(data: data, encoding: .utf8) ?? "Unable to delete Jira comment."
+            throw AuthError.failedTokenExchange(message)
+        }
+    }
+
+    func deleteIssue(_ issue: Issue, deleteSubtasks: Bool) async throws {
+        guard let token = try authService.currentToken() else {
+            throw AuthError.invalidConfiguration
+        }
+        guard let cloudID = cloudID(from: issue) else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.atlassian.com"
+        components.path = "/ex/jira/\(cloudID)/rest/api/3/issue/\(issue.key)"
+        if deleteSubtasks {
+            components.queryItems = [
+                URLQueryItem(name: "deleteSubtasks", value: "true")
+            ]
+        }
+
+        guard let url = components.url else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("Bearer \(token.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidServerResponse
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            let message = String(data: data, encoding: .utf8) ?? "Unable to delete Jira issue."
+            throw AuthError.failedTokenExchange(message)
+        }
     }
 
     func transition(issue: Issue, toStatus status: String) async throws {
@@ -431,6 +636,53 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
             accessToken: token.accessToken,
             fieldID: fieldID,
             value: storyPoints
+        )
+    }
+
+    func updateSummary(issue: Issue, summary: String) async throws {
+        guard let token = try authService.currentToken() else {
+            throw AuthError.invalidConfiguration
+        }
+        guard let cloudID = cloudID(from: issue) else {
+            throw AuthError.invalidConfiguration
+        }
+
+        let trimmedSummary = summary.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedSummary.isEmpty else {
+            throw AuthError.failedTokenExchange("Issue summary cannot be empty.")
+        }
+
+        try await updateIssueFields(
+            issueKey: issue.key,
+            cloudID: cloudID,
+            accessToken: token.accessToken,
+            fields: ["summary": trimmedSummary],
+            failureMessage: "Unable to update Jira issue summary."
+        )
+    }
+
+    func updateDescription(issue: Issue, descriptionText: String?) async throws {
+        guard let token = try authService.currentToken() else {
+            throw AuthError.invalidConfiguration
+        }
+        guard let cloudID = cloudID(from: issue) else {
+            throw AuthError.invalidConfiguration
+        }
+
+        let trimmedDescription = descriptionText?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let descriptionValue: Any = {
+            guard let trimmedDescription, !trimmedDescription.isEmpty else {
+                return NSNull()
+            }
+            return adfDocument(text: trimmedDescription)
+        }()
+
+        try await updateIssueFields(
+            issueKey: issue.key,
+            cloudID: cloudID,
+            accessToken: token.accessToken,
+            fields: ["description": descriptionValue],
+            failureMessage: "Unable to update Jira issue description."
         )
     }
 
@@ -636,6 +888,55 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
         let decoder = jiraDecoder
         decoder.userInfo[.storyPointsFieldIDs] = storyPointsFieldIDs
         return try decoder.decode(IssueSearchResponse.self, from: data)
+    }
+
+    private func commentParentIDs(from commentIDs: [String], cloudID: String, accessToken: String) async throws -> [String: String] {
+        let numericIDs = Array(Set(commentIDs.compactMap(Int.init)))
+        guard numericIDs.isEmpty == false else { return [:] }
+
+        var parentIDsByCommentID: [String: String] = [:]
+
+        for batchStart in stride(from: 0, to: numericIDs.count, by: 100) {
+            let batchEnd = min(batchStart + 100, numericIDs.count)
+            let batch = Array(numericIDs[batchStart..<batchEnd])
+
+            var components = URLComponents()
+            components.scheme = "https"
+            components.host = "api.atlassian.com"
+            components.path = "/ex/jira/\(cloudID)/rest/api/3/comment/list"
+            components.queryItems = [
+                URLQueryItem(name: "expand", value: "properties")
+            ]
+
+            guard let url = components.url else {
+                throw AuthError.invalidConfiguration
+            }
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.httpBody = try JSONSerialization.data(withJSONObject: ["ids": batch])
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            let (data, response) = try await urlSession.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw AuthError.invalidServerResponse
+            }
+
+            guard (200..<300).contains(httpResponse.statusCode) else {
+                let message = String(data: data, encoding: .utf8) ?? "Unable to load Jira comment properties."
+                throw AuthError.failedTokenExchange(message)
+            }
+
+            let page = try jiraDecoder.decode(JiraCommentListDTO.self, from: data)
+            for comment in page.values {
+                guard let parentID = comment.parentIDFromProperties(propertyKey: replyParentPropertyKey) else { continue }
+                parentIDsByCommentID[comment.id] = parentID
+            }
+        }
+
+        return parentIDsByCommentID
     }
 
     private func storyPointsFieldIDsFromFieldNames(fromFieldNames fieldNames: [String: String], appendingTo existingFieldIDs: [String]) -> [String] {
@@ -863,6 +1164,23 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
         fieldID: String,
         value: Double?
     ) async throws {
+        let fieldValue: Any = value.map { NSNumber(value: $0) } ?? NSNull()
+        try await updateIssueFields(
+            issueKey: issueKey,
+            cloudID: cloudID,
+            accessToken: accessToken,
+            fields: [fieldID: fieldValue],
+            failureMessage: "Unable to update Jira story points."
+        )
+    }
+
+    private func updateIssueFields(
+        issueKey: String,
+        cloudID: String,
+        accessToken: String,
+        fields: [String: Any],
+        failureMessage: String
+    ) async throws {
         var components = URLComponents()
         components.scheme = "https"
         components.host = "api.atlassian.com"
@@ -872,11 +1190,8 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
             throw AuthError.invalidConfiguration
         }
 
-        let fieldValue: Any = value.map { NSNumber(value: $0) } ?? NSNull()
         let payload: [String: Any] = [
-            "fields": [
-                fieldID: fieldValue
-            ]
+            "fields": fields
         ]
 
         var request = URLRequest(url: url)
@@ -892,7 +1207,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
         }
 
         guard (200..<300).contains(httpResponse.statusCode) else {
-            let message = String(data: data, encoding: .utf8) ?? "Unable to update Jira story points."
+            let message = String(data: data, encoding: .utf8) ?? failureMessage
             throw AuthError.failedTokenExchange(message)
         }
     }
@@ -1002,6 +1317,40 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
                     ]
                 ]
             }
+
+        return [
+            "type": "doc",
+            "version": 1,
+            "content": paragraphs
+        ]
+    }
+
+    private func adfCommentDocument(text: String, mentioning comment: IssueComment?) -> [String: Any] {
+        var paragraphs = adfDocument(text: text)["content"] as? [[String: Any]] ?? []
+        guard let accountID = comment?.authorAccountID,
+              let authorName = comment?.authorName,
+              paragraphs.isEmpty == false
+        else {
+            return adfDocument(text: text)
+        }
+
+        var firstParagraph = paragraphs[0]
+        var content = firstParagraph["content"] as? [[String: Any]] ?? []
+        let mention: [String: Any] = [
+            "type": "mention",
+            "attrs": [
+                "id": accountID,
+                "text": "@\(authorName)"
+            ]
+        ]
+        let space: [String: Any] = [
+            "type": "text",
+            "text": " "
+        ]
+        content.insert(space, at: 0)
+        content.insert(mention, at: 0)
+        firstParagraph["content"] = content
+        paragraphs[0] = firstParagraph
 
         return [
             "type": "doc",
@@ -1140,6 +1489,33 @@ private struct JiraCreatedIssueDTO: Decodable {
 private struct JiraUserDTO: Decodable {
     var accountId: String
     var displayName: String
+    var avatarUrls: JiraUserAvatarURLsDTO?
+
+    var domainValue: JiraUser {
+        JiraUser(
+            accountID: accountId,
+            displayName: displayName,
+            avatarURL: avatarUrls?.bestAvailableURL
+        )
+    }
+}
+
+private struct JiraUserAvatarURLsDTO: Decodable {
+    var x48: URL?
+    var x32: URL?
+    var x24: URL?
+    var x16: URL?
+
+    private enum CodingKeys: String, CodingKey {
+        case x48 = "48x48"
+        case x32 = "32x32"
+        case x24 = "24x24"
+        case x16 = "16x16"
+    }
+
+    var bestAvailableURL: URL? {
+        x48 ?? x32 ?? x24 ?? x16
+    }
 }
 
 private struct IssueFieldsDTO: Decodable {
@@ -1342,6 +1718,7 @@ private struct JiraChangelogItemDTO: Decodable {
 }
 
 private struct IssueUserDTO: Decodable {
+    var accountId: String?
     var displayName: String
 }
 
@@ -1353,27 +1730,127 @@ private struct JiraCommentPageDTO: Decodable {
     var comments: [JiraCommentDTO]
 }
 
+private struct JiraCommentListDTO: Decodable {
+    var values: [JiraCommentDTO]
+}
+
 private struct JiraCommentDTO: Decodable {
     var id: String
     var author: IssueUserDTO?
     var body: JiraDocumentDTO?
     var created: Date
     var updated: Date?
+    var parentId: String?
+    var properties: [JiraCommentPropertyDTO]
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case author
+        case body
+        case created
+        case updated
+        case parentId
+        case parent
+        case properties
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        author = try values.decodeIfPresent(IssueUserDTO.self, forKey: .author)
+        body = try values.decodeIfPresent(JiraDocumentDTO.self, forKey: .body)
+        created = try values.decode(Date.self, forKey: .created)
+        updated = try values.decodeIfPresent(Date.self, forKey: .updated)
+        properties = try values.decodeIfPresent([JiraCommentPropertyDTO].self, forKey: .properties) ?? []
+
+        if let stringParentID = try? values.decodeIfPresent(String.self, forKey: .parentId) {
+            parentId = stringParentID
+        } else if let intParentID = try? values.decodeIfPresent(Int.self, forKey: .parentId) {
+            parentId = "\(intParentID)"
+        } else if let parent = try? values.decodeIfPresent(JiraCommentParentDTO.self, forKey: .parent) {
+            parentId = parent.id
+        } else {
+            parentId = nil
+        }
+    }
 
     var domainValue: IssueComment {
         IssueComment(
             id: id,
             authorName: author?.displayName,
+            authorAccountID: author?.accountId,
             bodyText: body?.plainText ?? "",
             createdAt: created,
-            updatedAt: updated
+            updatedAt: updated,
+            parentID: parentId
         )
+    }
+
+    func parentIDFromProperties(propertyKey: String) -> String? {
+        properties.first { $0.key == propertyKey }?.value.parentCommentID
+    }
+}
+
+private struct JiraCommentParentDTO: Decodable {
+    var id: String
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        if let stringID = try? values.decode(String.self, forKey: .id) {
+            id = stringID
+        } else {
+            id = "\(try values.decode(Int.self, forKey: .id))"
+        }
+    }
+}
+
+private struct JiraCommentPropertyDTO: Decodable {
+    var key: String
+    var value: JiraCommentParentPropertyValueDTO
+}
+
+private struct JiraCommentParentPropertyValueDTO: Decodable {
+    var parentCommentID: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case parentCommentID = "parentCommentId"
+        case parentID = "parentId"
+    }
+
+    init(from decoder: Decoder) throws {
+        if let stringValue = try? decoder.singleValueContainer().decode(String.self) {
+            parentCommentID = stringValue
+            return
+        }
+
+        if let intValue = try? decoder.singleValueContainer().decode(Int.self) {
+            parentCommentID = "\(intValue)"
+            return
+        }
+
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        if let stringParentID = try? values.decodeIfPresent(String.self, forKey: .parentCommentID) {
+            parentCommentID = stringParentID
+        } else if let intParentID = try? values.decodeIfPresent(Int.self, forKey: .parentCommentID) {
+            parentCommentID = "\(intParentID)"
+        } else if let stringParentID = try? values.decodeIfPresent(String.self, forKey: .parentID) {
+            parentCommentID = stringParentID
+        } else if let intParentID = try? values.decodeIfPresent(Int.self, forKey: .parentID) {
+            parentCommentID = "\(intParentID)"
+        } else {
+            parentCommentID = nil
+        }
     }
 }
 
 private struct JiraDocumentDTO: Decodable {
     var type: String?
     var text: String?
+    var attrs: JiraDocumentAttrsDTO?
     var content: [JiraDocumentDTO]?
 
     var plainText: String {
@@ -1401,6 +1878,8 @@ private struct JiraDocumentDTO: Decodable {
         switch type {
         case "text":
             return text ?? ""
+        case "mention":
+            return attrs?.text ?? ""
         case "hardBreak":
             return "\n"
         case "paragraph", "heading":
@@ -1422,6 +1901,10 @@ private struct JiraDocumentDTO: Decodable {
     private func childText() -> String {
         content?.map { $0.rawPlainText() }.joined() ?? ""
     }
+}
+
+private struct JiraDocumentAttrsDTO: Decodable {
+    var text: String?
 }
 
 private struct IssueParentDTO: Decodable {

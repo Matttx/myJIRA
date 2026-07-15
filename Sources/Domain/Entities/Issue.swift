@@ -3,9 +3,11 @@ import Foundation
 struct IssueComment: Hashable, Sendable, Codable {
     var id: String
     var authorName: String?
+    var authorAccountID: String?
     var bodyText: String
     var createdAt: Date
     var updatedAt: Date?
+    var parentID: String?
 }
 
 struct IssueChange: Hashable, Sendable, Codable {

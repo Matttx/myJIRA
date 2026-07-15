@@ -36,6 +36,14 @@ final class LocalIssueRepository: IssueRepository, @unchecked Sendable {
         }
     }
 
+    func deleteIssue(issueID: Issue.ID) async throws {
+        _ = try await database.writer.write { db in
+            try IssueRecord
+                .filter(Column("id") == issueID)
+                .deleteAll(db)
+        }
+    }
+
     func replaceIssues(projectID: Project.ID, issues: [Issue]) async throws {
         try await database.writer.write { db in
             let existingChangesByID = try IssueRecord
@@ -101,6 +109,42 @@ final class LocalIssueRepository: IssueRepository, @unchecked Sendable {
                 .filter(Column("id") == issueID)
                 .updateAll(db, [
                     Column("storyPoints").set(to: storyPoints),
+                    Column("updatedAt").set(to: Date())
+                ])
+        }
+    }
+
+    func updateSummary(issueID: Issue.ID, summary: String) async throws {
+        _ = try await database.writer.write { db in
+            try IssueRecord
+                .filter(Column("id") == issueID)
+                .updateAll(db, [
+                    Column("summary").set(to: summary),
+                    Column("updatedAt").set(to: Date())
+                ])
+        }
+    }
+
+    func updateDescription(issueID: Issue.ID, descriptionText: String?) async throws {
+        _ = try await database.writer.write { db in
+            try IssueRecord
+                .filter(Column("id") == issueID)
+                .updateAll(db, [
+                    Column("descriptionText").set(to: descriptionText),
+                    Column("updatedAt").set(to: Date())
+                ])
+        }
+    }
+
+    func updateComments(issueID: Issue.ID, comments: [IssueComment]) async throws {
+        let encoder = JSONEncoder()
+        let commentsJSON = String(data: try encoder.encode(comments), encoding: .utf8) ?? "[]"
+
+        _ = try await database.writer.write { db in
+            try IssueRecord
+                .filter(Column("id") == issueID)
+                .updateAll(db, [
+                    Column("commentsJSON").set(to: commentsJSON),
                     Column("updatedAt").set(to: Date())
                 ])
         }

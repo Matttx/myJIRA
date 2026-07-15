@@ -6,6 +6,7 @@ struct BacklogView: View {
     let issueTypes: [IssueTypeMetadata]
     let creationMetadata: IssueCreationMetadata?
     let currentUser: JiraUser?
+    let assignableUsers: [JiraUser]
     @Binding var selectedIssueID: Issue.ID?
     let isRefreshing: Bool
     let isLoadingIssueCreation: Bool
@@ -15,6 +16,9 @@ struct BacklogView: View {
     let onUpdateStoryPoints: (Issue.ID, Double?) -> Void
     let onMoveColumn: (String, String?) -> Void
     let onAssignIssueToCurrentUser: (Issue.ID) -> Void
+    let onUnassignIssue: (Issue.ID) -> Void
+    let onAssignIssue: (Issue.ID, JiraUser) -> Void
+    let onDeleteIssue: (Issue.ID) -> Void
     let onLoadIssueCreationOptions: () -> Void
     let onLoadCreationMetadata: (IssueTypeMetadata.ID) -> Void
     let onCreateIssue: (IssueCreationDraft) async -> Bool
@@ -22,6 +26,7 @@ struct BacklogView: View {
     @State private var selectedSprintFilter: SprintFilter = .all
     @State private var searchQuery = ""
     @State private var isCreateIssuePresented = false
+    @State private var issueToDelete: Issue?
 
     var body: some View {
         VStack(spacing: 16) {
@@ -51,7 +56,14 @@ struct BacklogView: View {
                         columns: kanbanColumns,
                         selectedIssueID: $selectedIssueID,
                         onMoveIssue: onMoveIssue,
-                        onMoveColumn: onMoveColumn
+                        onMoveColumn: onMoveColumn,
+                        onDeleteIssue: { issue in
+                            issueToDelete = issue
+                        },
+                        onAssignIssueToCurrentUser: onAssignIssueToCurrentUser,
+                        onUnassignIssue: onUnassignIssue,
+                        assignableUsers: assignableUsers,
+                        onAssignIssue: onAssignIssue
                     )
                 }
             }
@@ -60,6 +72,8 @@ struct BacklogView: View {
         .sheet(isPresented: $isCreateIssuePresented) {
             CreateIssueSheet(
                 issueTypes: issueTypes,
+                sprintOptions: issueSprintOptions,
+                initialTargetSprintID: defaultCreationSprintID,
                 creationMetadata: creationMetadata,
                 isLoading: isLoadingIssueCreation,
                 isCreating: isCreatingIssue,
@@ -67,6 +81,36 @@ struct BacklogView: View {
                 onLoadMetadata: onLoadCreationMetadata,
                 onCreate: onCreateIssue
             )
+        }
+        .confirmationDialog(
+            "Delete issue?",
+            isPresented: Binding(
+                get: { issueToDelete != nil },
+                set: { isPresented in
+                    if isPresented == false {
+                        issueToDelete = nil
+                    }
+                }
+            )
+        ) {
+            Button("Delete", role: .destructive) {
+                if let issueToDelete {
+                    onDeleteIssue(issueToDelete.id)
+                }
+                issueToDelete = nil
+            }
+
+            Button("Cancel", role: .cancel) {
+                issueToDelete = nil
+            }
+        } message: {
+            if let issueToDelete, issueToDelete.subtaskCount > 0 {
+                Text("This will delete \(issueToDelete.key) and its subtasks from Jira.")
+            } else if let issueToDelete {
+                Text("This will delete \(issueToDelete.key) from Jira.")
+            } else {
+                Text("This issue will be deleted from Jira.")
+            }
         }
     }
 
@@ -113,6 +157,33 @@ struct BacklogView: View {
             .map(SprintFilter.sprint)
 
         return [.all, .backlog] + sprintFilters
+    }
+
+    private var issueSprintOptions: [IssueSprintOption] {
+        let sprintOptions = browsableIssues
+            .reduce(into: [Int: IssueSprintOption]()) { result, issue in
+                guard let sprintID = issue.sprintID,
+                      let sprintName = issue.trimmedSprintName,
+                      !issue.isDoneSprint
+                else { return }
+
+                result[sprintID] = IssueSprintOption(sprintID: sprintID, title: sprintName)
+            }
+            .values
+            .sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
+
+        return [IssueSprintOption(sprintID: nil, title: "Backlog")] + sprintOptions
+    }
+
+    private var defaultCreationSprintID: Int? {
+        switch effectiveSprintFilter {
+        case .all, .backlog:
+            return nil
+        case .sprint(let name):
+            return issueSprintOptions.first { option in
+                option.title == name
+            }?.sprintID
+        }
     }
 
     private var groupedIssues: [IssueGroup] {
@@ -249,6 +320,19 @@ struct BacklogView: View {
                                     },
                                     onAssignToCurrentUser: {
                                         onAssignIssueToCurrentUser(issue.id)
+                                    },
+                                    onUnassign: {
+                                        onUnassignIssue(issue.id)
+                                    },
+                                    assignableUsers: assignableUsers,
+                                    onAssign: { user in
+                                        onAssignIssue(issue.id, user)
+                                    },
+                                    onOpen: {
+                                        selectedIssueID = issue.id
+                                    },
+                                    onDelete: {
+                                        issueToDelete = issue
                                     }
                                 )
                                 .onTapGesture {

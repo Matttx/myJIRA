@@ -4,6 +4,11 @@ struct KanbanColumnView: View {
     let column: KanbanColumn
     @Binding var selectedIssueID: Issue.ID?
     let onMoveIssue: (Issue.ID, String, Issue.ID?) -> Void
+    let onDeleteIssue: (Issue) -> Void
+    let onAssignIssueToCurrentUser: (Issue.ID) -> Void
+    let onUnassignIssue: (Issue.ID) -> Void
+    let assignableUsers: [JiraUser]
+    let onAssignIssue: (Issue.ID, JiraUser) -> Void
 
     var body: some View {
         let statusColor = JiraStatusColor.resolved(for: column.title)
@@ -60,6 +65,19 @@ struct KanbanColumnView: View {
                         isSelected: selectedIssueID == issue.id,
                         onOpen: {
                             selectedIssueID = issue.id
+                        },
+                        onDelete: {
+                            onDeleteIssue(issue)
+                        },
+                        onAssignToCurrentUser: {
+                            onAssignIssueToCurrentUser(issue.id)
+                        },
+                        onUnassign: {
+                            onUnassignIssue(issue.id)
+                        },
+                        assignableUsers: assignableUsers,
+                        onAssign: { user in
+                            onAssignIssue(issue.id, user)
                         }
                     )
                     .onTapGesture {

@@ -1,8 +1,8 @@
 import SwiftUI
 
 enum JiraDesign {
-    static let accent = Color.black
-    static let foreground = Color(red: 254 / 255, green: 255 / 255, blue: 255 / 255)
+    static let accent = Color("AccentColor")
+    static let foreground = Color("ForegroundColor")
     static let panelRadius: CGFloat = 24
     static let controlRadius: CGFloat = 16
     static let rowRadius: CGFloat = 16

@@ -17,6 +17,7 @@ final class AppContainer {
     let issueHierarchyUseCase: IssueHierarchyUseCase
     let issueDetailUseCase: IssueDetailUseCase
     let issueCreationUseCase: IssueCreationUseCase
+    let projectUsersManager: ProjectUsersManager
 
     init(
         database: AppDatabase,
@@ -33,7 +34,8 @@ final class AppContainer {
         issueBoardUseCase: IssueBoardUseCase,
         issueHierarchyUseCase: IssueHierarchyUseCase,
         issueDetailUseCase: IssueDetailUseCase,
-        issueCreationUseCase: IssueCreationUseCase
+        issueCreationUseCase: IssueCreationUseCase,
+        projectUsersManager: ProjectUsersManager
     ) {
         self.database = database
         self.workspaceRepository = workspaceRepository
@@ -50,6 +52,7 @@ final class AppContainer {
         self.issueHierarchyUseCase = issueHierarchyUseCase
         self.issueDetailUseCase = issueDetailUseCase
         self.issueCreationUseCase = issueCreationUseCase
+        self.projectUsersManager = projectUsersManager
     }
 
     static func live() -> AppContainer {
@@ -97,6 +100,10 @@ final class AppContainer {
                 issueRepository: issueRepository,
                 jiraDataService: jiraDataService
             )
+            let projectUsersManager = ProjectUsersManager(
+                workspaceRepository: workspaceRepository,
+                jiraDataService: jiraDataService
+            )
 
             return AppContainer(
                 database: database,
@@ -113,7 +120,8 @@ final class AppContainer {
                 issueBoardUseCase: issueBoardUseCase,
                 issueHierarchyUseCase: issueHierarchyUseCase,
                 issueDetailUseCase: issueDetailUseCase,
-                issueCreationUseCase: issueCreationUseCase
+                issueCreationUseCase: issueCreationUseCase,
+                projectUsersManager: projectUsersManager
             )
         } catch {
             fatalError("Unable to open local database: \(error)")

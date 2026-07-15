@@ -16,12 +16,13 @@ struct MyJiraApp: App {
                     issueBoardUseCase: container.issueBoardUseCase,
                     issueHierarchyUseCase: container.issueHierarchyUseCase,
                     issueDetailUseCase: container.issueDetailUseCase,
-                    issueCreationUseCase: container.issueCreationUseCase
+                    issueCreationUseCase: container.issueCreationUseCase,
+                    projectUsersManager: container.projectUsersManager
                 ),
                 router: router
             )
             .environment(container)
-            .tint(.black)
+            .tint(JiraDesign.accent)
             .frame(minWidth: 980, minHeight: 640)
         }
         .commands {

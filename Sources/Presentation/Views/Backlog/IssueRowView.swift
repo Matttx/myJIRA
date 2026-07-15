@@ -7,6 +7,13 @@ struct IssueRowView: View {
     let onChangeStatus: (String) -> Void
     let onUpdateStoryPoints: (Double?) -> Void
     let onAssignToCurrentUser: () -> Void
+    let onUnassign: () -> Void
+    let assignableUsers: [JiraUser]
+    let onAssign: (JiraUser) -> Void
+    let onOpen: () -> Void
+    let onDelete: () -> Void
+
+    @State private var isHovering = false
 
     var body: some View {
         HStack(spacing: 8) {
@@ -16,6 +23,10 @@ struct IssueRowView: View {
             subtasks
             assignee
             statusPicker
+            if isHovering {
+                actionsMenu
+                    .allowsHitTesting(isHovering)
+            }
         }
         .foregroundStyle(isSelected ? Color.foreground : Color.primary)
         .padding(.horizontal, 14)
@@ -23,6 +34,14 @@ struct IssueRowView: View {
         .background(isSelected ? JiraDesign.accent : JiraDesign.surface)
         .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
         .contentShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
+        .onHover { hovering in
+            withAnimation(.bouncy(duration: 0.3)) {
+                isHovering = hovering
+            }
+        }
+        .contextMenu {
+            actionItems
+        }
     }
 
     private var titleBlock: some View {
@@ -47,22 +66,14 @@ struct IssueRowView: View {
 
     @ViewBuilder
     private var assignee: some View {
-        if let assigneeName = issue.assigneeName {
-            JiraInitialsAvatar(name: assigneeName, isSelected: isSelected, showsHoverName: true)
-        } else {
-            Button(action: onAssignToCurrentUser) {
-                Image(systemName: "person")
-                .frame(width: 30, height: 30)
-                .background(isSelected ? Color.foreground.opacity(0.12) : JiraDesign.surface)
-                .clipShape(Circle())
-                .overlay {
-                    Circle()
-                        .stroke(isSelected ? Color.foreground.opacity(0.18) : JiraDesign.hairline, lineWidth: 1)
-                }
-            }
-            .buttonStyle(.plain)
-            .help("Assign to me")
-        }
+        AssigneeAvatarButton(
+            assigneeName: issue.assigneeName,
+            isSelected: isSelected,
+            assignableUsers: assignableUsers,
+            onAssignToCurrentUser: onAssignToCurrentUser,
+            onUnassign: onUnassign,
+            onAssign: onAssign
+        )
     }
 
     @ViewBuilder
@@ -83,6 +94,44 @@ struct IssueRowView: View {
             ForEach(statusOptions, id: \.self) { status in
                 Text(status).tag(status)
             }
+        }
+    }
+
+    private var actionsMenu: some View {
+        Menu {
+            actionItems
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.paragraphS)
+                .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
+                .frame(width: 26, height: 24)
+                .background(isSelected ? Color.foreground.opacity(0.12) : JiraDesign.surface)
+                .clipShape(.capsule)
+        }
+        .buttonStyle(.plain)
+        .help("Issue actions")
+    }
+
+    @ViewBuilder
+    private var actionItems: some View {
+        Button {
+            onOpen()
+        } label: {
+            Label("Open", systemImage: "arrow.up.right.square")
+        }
+
+        Button {
+            onOpen()
+        } label: {
+            Label("Edit", systemImage: "square.and.pencil")
+        }
+
+        Divider()
+
+        Button(role: .destructive) {
+            onDelete()
+        } label: {
+            Label("Delete", systemImage: "trash")
         }
     }
 }
