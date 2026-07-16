@@ -3,12 +3,44 @@ import SwiftUI
 struct SubtaskRowView: View {
     let subtask: Issue
     let onSelect: () -> Void
+    let onDelete: () -> Void
+
+    @State private var isHovering = false
 
     var body: some View {
-        Button(action: onSelect) {
-            rowContent
+        rowContent
+            .onTapGesture(perform: onSelect)
+            .onHover { hovering in
+                withAnimation(.bouncy(duration: 0.3)) {
+                    isHovering = hovering
+                }
+            }
+            .contextMenu {
+                actionItems
+            }
+    }
+
+    @ViewBuilder
+    private var actionItems: some View {
+        Button {
+            onSelect()
+        } label: {
+            Label("Open", systemImage: "arrow.up.right.square")
         }
-        .buttonStyle(.plain)
+
+        Button {
+            onSelect()
+        } label: {
+            Label("Edit", systemImage: "square.and.pencil")
+        }
+
+        Divider()
+
+        Button(role: .destructive) {
+            onDelete()
+        } label: {
+            Label("Delete", systemImage: "trash")
+        }
     }
 
     private var rowContent: some View {
@@ -19,6 +51,10 @@ struct SubtaskRowView: View {
             assignee
             subtasks
             statusBadge
+            if isHovering {
+                actionsMenu
+                    .allowsHitTesting(isHovering)
+            }
         }
         .foregroundStyle(Color.primary)
         .padding(.horizontal, 14)
@@ -26,6 +62,21 @@ struct SubtaskRowView: View {
         .background(JiraDesign.surface)
         .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
         .contentShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
+    }
+
+    private var actionsMenu: some View {
+        Menu {
+            actionItems
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.paragraphS)
+                .foregroundStyle(.secondary)
+                .frame(width: 26, height: 24)
+                .background(JiraDesign.surface)
+                .clipShape(.capsule)
+        }
+        .buttonStyle(.plain)
+        .help("Subtask actions")
     }
 
     private var titleBlock: some View {

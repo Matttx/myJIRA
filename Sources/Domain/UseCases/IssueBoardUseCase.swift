@@ -149,6 +149,13 @@ final class IssueBoardUseCase: @unchecked Sendable {
 
     func commitDeleteIssue(_ issue: Issue, deleteSubtasks: Bool) async throws {
         try await issueRepository.deleteIssue(issueID: issue.id)
+        if let parentID = issue.parentID,
+           var parentIssue = try await issueRepository.issue(id: parentID) {
+            parentIssue.subtaskIDs.removeAll { $0 == issue.id }
+            parentIssue.updatedAt = Date()
+            try await issueRepository.upsertIssue(parentIssue)
+        }
+
         if deleteSubtasks {
             for subtaskID in issue.subtaskIDs {
                 try await issueRepository.deleteIssue(issueID: subtaskID)

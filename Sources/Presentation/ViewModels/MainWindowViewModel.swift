@@ -27,6 +27,7 @@ final class MainWindowViewModel {
     private let issueDetailUseCase: IssueDetailUseCase
     private let issueCreationUseCase: IssueCreationUseCase
     private let projectUsersManager: ProjectUsersManager
+    private let displayPreferencesRepository: DisplayPreferencesRepository
     private var projectViewModels: [Project.ID: ProjectViewModel] = [:]
 
     init(
@@ -36,7 +37,8 @@ final class MainWindowViewModel {
         issueHierarchyUseCase: IssueHierarchyUseCase,
         issueDetailUseCase: IssueDetailUseCase,
         issueCreationUseCase: IssueCreationUseCase,
-        projectUsersManager: ProjectUsersManager
+        projectUsersManager: ProjectUsersManager,
+        displayPreferencesRepository: DisplayPreferencesRepository
     ) {
         self.jiraSessionUseCase = jiraSessionUseCase
         self.projectIssuesUseCase = projectIssuesUseCase
@@ -45,6 +47,7 @@ final class MainWindowViewModel {
         self.issueDetailUseCase = issueDetailUseCase
         self.issueCreationUseCase = issueCreationUseCase
         self.projectUsersManager = projectUsersManager
+        self.displayPreferencesRepository = displayPreferencesRepository
     }
 
     func loadInitialSelection(router: AppRouter) async {
@@ -58,15 +61,13 @@ final class MainWindowViewModel {
         }
 
         do {
-            workspaces = try await jiraSessionUseCase.workspaces()
+            workspaces = try await orderedWorkspaces(try await jiraSessionUseCase.workspaces())
         } catch {
             errorMessage = error.localizedDescription
             return
         }
 
-        if router.selectedWorkspaceID == nil, let workspace = workspaces.first {
-            router.select(workspace: workspace)
-        }
+        ensureValidInitialSelection(router: router)
 
         await selectProject(router.selectedProjectID)
     }
@@ -77,7 +78,7 @@ final class MainWindowViewModel {
         defer { isRefreshing = false }
 
         do {
-            workspaces = try await jiraSessionUseCase.connect(configuration: configuration)
+            workspaces = try await orderedWorkspaces(try await jiraSessionUseCase.connect(configuration: configuration))
             isConnected = true
             projectViewModels.removeAll()
             currentProjectViewModel = nil
@@ -100,7 +101,7 @@ final class MainWindowViewModel {
         await currentProjectViewModel.refresh()
 
         do {
-            workspaces = try await jiraSessionUseCase.workspaces()
+            workspaces = try await orderedWorkspaces(try await jiraSessionUseCase.workspaces())
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -148,9 +149,57 @@ final class MainWindowViewModel {
             issueHierarchyUseCase: issueHierarchyUseCase,
             issueDetailUseCase: issueDetailUseCase,
             issueCreationUseCase: issueCreationUseCase,
-            projectUsersManager: projectUsersManager
+            projectUsersManager: projectUsersManager,
+            displayPreferencesRepository: displayPreferencesRepository
         )
         projectViewModels[projectID] = viewModel
         return viewModel
+    }
+
+    private func orderedWorkspaces(_ workspaces: [Workspace]) async throws -> [Workspace] {
+        var orderedWorkspaces: [Workspace] = []
+
+        for workspace in workspaces {
+            let savedOrder = try await displayPreferencesRepository.projectOrder(workspaceID: workspace.id)
+            let savedIDs = Set(savedOrder)
+            let orderedProjects = savedOrder.compactMap { projectID in
+                workspace.projects.first { $0.id == projectID }
+            }
+            let newProjects = workspace.projects.filter { !savedIDs.contains($0.id) }
+
+            var orderedWorkspace = workspace
+            orderedWorkspace.projects = orderedProjects + newProjects
+            orderedWorkspaces.append(orderedWorkspace)
+        }
+
+        return orderedWorkspaces
+    }
+
+    private func ensureValidInitialSelection(router: AppRouter) {
+        guard !workspaces.isEmpty else {
+            router.selectedWorkspaceID = nil
+            router.selectedProjectID = nil
+            return
+        }
+
+        let selectedWorkspace = workspaces.first { $0.id == router.selectedWorkspaceID }
+        let workspace = selectedWorkspace ?? workspaces.first
+        let projectIDs = Set(workspaces.flatMap(\.projects).map(\.id))
+
+        if let selectedProjectID = router.selectedProjectID,
+           projectIDs.contains(selectedProjectID) {
+            router.selectedWorkspaceID = workspaceContaining(projectID: selectedProjectID)?.id ?? workspace?.id
+            return
+        }
+
+        router.selectedWorkspaceID = workspace?.id
+        router.selectedProjectID = workspace?.projects.first?.id ?? workspaces.flatMap(\.projects).first?.id
+        router.selectedIssueID = nil
+    }
+
+    private func workspaceContaining(projectID: Project.ID) -> Workspace? {
+        workspaces.first { workspace in
+            workspace.projects.contains { $0.id == projectID }
+        }
     }
 }

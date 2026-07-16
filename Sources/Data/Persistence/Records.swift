@@ -56,6 +56,36 @@ struct KanbanColumnOrderRecord: Codable, FetchableRecord, PersistableRecord {
     var position: Int
 }
 
+struct ProjectDisplayOrderRecord: Codable, FetchableRecord, PersistableRecord {
+    static let databaseTableName = "projectDisplayOrders"
+
+    var workspaceID: String
+    var projectID: String
+    var position: Int
+}
+
+struct BacklogSprintOrderRecord: Codable, FetchableRecord, PersistableRecord {
+    static let databaseTableName = "backlogSprintOrders"
+
+    var projectID: String
+    var groupID: String
+    var position: Int
+}
+
+struct BacklogCollapsedGroupRecord: Codable, FetchableRecord, PersistableRecord {
+    static let databaseTableName = "backlogCollapsedGroups"
+
+    var projectID: String
+    var groupID: String
+}
+
+struct BacklogSelectedSprintFilterRecord: Codable, FetchableRecord, PersistableRecord {
+    static let databaseTableName = "backlogSelectedSprintFilters"
+
+    var projectID: String
+    var filterID: String
+}
+
 extension WorkspaceRecord {
     init(workspace: Workspace) {
         id = workspace.id

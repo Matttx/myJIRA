@@ -23,6 +23,7 @@ struct MainWindowView: View {
             await viewModel.loadInitialSelection(router: router)
         }
         .navigationTitle(viewModel.currentProjectTitle)
+        .navigationSubtitle("Showing latest 200 issues")
         .onReceive(NotificationCenter.default.publisher(for: .refreshRequested)) { _ in
             Task { await viewModel.refreshCurrentProject() }
         }
@@ -77,13 +78,18 @@ struct MainWindowView: View {
 
     private func projectContent(_ projectViewModel: ProjectViewModel) -> some View {
         BacklogView(
+            projectID: projectViewModel.projectID,
             issues: projectViewModel.issues,
             kanbanColumnOrder: projectViewModel.kanbanColumnOrder,
             issueTypes: projectViewModel.issueTypes,
             creationMetadata: projectViewModel.creationMetadata,
             currentUser: projectViewModel.currentUser,
             assignableUsers: projectViewModel.assignableUsers,
+            savedSprintOrder: projectViewModel.backlogSprintOrder,
+            savedCollapsedGroupIDs: projectViewModel.collapsedBacklogGroupIDs,
+            savedSelectedSprintFilter: projectViewModel.selectedSprintFilter,
             selectedIssueID: $router.selectedIssueID,
+            isLoadingInitialData: projectViewModel.isLoadingInitialData,
             isRefreshing: viewModel.isRefreshing || projectViewModel.isRefreshing,
             isLoadingIssueCreation: projectViewModel.isLoadingIssueCreation,
             isCreatingIssue: projectViewModel.isCreatingIssue,
@@ -97,6 +103,11 @@ struct MainWindowView: View {
                         toStatus: status,
                         beforeIssueID: beforeIssueID
                     )
+                }
+            },
+            onMoveIssueToSprint: { issueID, sprintName in
+                Task {
+                    await projectViewModel.updateSprint(issueID: issueID, sprintName: sprintName)
                 }
             },
             onUpdateStoryPoints: { issueID, storyPoints in
@@ -142,6 +153,13 @@ struct MainWindowView: View {
                     await projectViewModel.loadCreationMetadata(issueTypeID: issueTypeID)
                 }
             },
+            onSaveDisplayPreferences: { sprintOrder, collapsedGroupIDs, selectedSprintFilter in
+                projectViewModel.saveBacklogDisplayPreferences(
+                    sprintOrder: sprintOrder,
+                    collapsedGroupIDs: collapsedGroupIDs,
+                    selectedSprintFilter: selectedSprintFilter
+                )
+            },
             onCreateIssue: { draft in
                 if let issue = await projectViewModel.createIssue(draft: draft) {
                     router.selectedIssueID = issue.id
@@ -175,6 +193,11 @@ struct MainWindowView: View {
             onChangeStatus: { issueID, status in
                 Task {
                     await projectViewModel.moveIssue(id: issueID, toStatus: status, beforeIssueID: nil)
+                }
+            },
+            onUpdateStoryPoints: { issueID, storyPoints in
+                Task {
+                    await projectViewModel.updateStoryPoints(issueID: issueID, storyPoints: storyPoints)
                 }
             },
             onUpdateSummary: { issueID, summary in

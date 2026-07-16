@@ -12,6 +12,10 @@ final class ProjectViewModel {
     var creationMetadata: IssueCreationMetadata?
     var currentUser: JiraUser?
     var assignableUsers: [JiraUser] = []
+    var backlogSprintOrder: [String] = []
+    var collapsedBacklogGroupIDs: Set<String> = []
+    var selectedSprintFilter: SprintFilter = .all
+    var isLoadingInitialData = false
     var isRefreshing = false
     var isLoadingIssueCreation = false
     var isLoadingAssignableUsers = false
@@ -24,6 +28,7 @@ final class ProjectViewModel {
     private let issueDetailUseCase: IssueDetailUseCase
     private let issueCreationUseCase: IssueCreationUseCase
     private let projectUsersManager: ProjectUsersManager
+    private let displayPreferencesRepository: DisplayPreferencesRepository
     private var loadedChangelogIssueIDs: Set<Issue.ID> = []
     private var loadingChangelogIssueIDs: Set<Issue.ID> = []
     private var addingCommentIssueIDs: Set<Issue.ID> = []
@@ -35,7 +40,8 @@ final class ProjectViewModel {
         issueHierarchyUseCase: IssueHierarchyUseCase,
         issueDetailUseCase: IssueDetailUseCase,
         issueCreationUseCase: IssueCreationUseCase,
-        projectUsersManager: ProjectUsersManager
+        projectUsersManager: ProjectUsersManager,
+        displayPreferencesRepository: DisplayPreferencesRepository
     ) {
         self.projectID = projectID
         self.projectIssuesUseCase = projectIssuesUseCase
@@ -44,11 +50,23 @@ final class ProjectViewModel {
         self.issueDetailUseCase = issueDetailUseCase
         self.issueCreationUseCase = issueCreationUseCase
         self.projectUsersManager = projectUsersManager
+        self.displayPreferencesRepository = displayPreferencesRepository
     }
 
     func load() async {
+        isLoadingInitialData = true
+        errorMessage = nil
+        defer { isLoadingInitialData = false }
+
         do {
-            apply(try await projectIssuesUseCase.load(projectID: projectID))
+            let cachedSnapshot = try await projectIssuesUseCase.load(projectID: projectID)
+
+            if cachedSnapshot.issues.isEmpty {
+                apply(try await projectIssuesUseCase.refresh(projectID: projectID))
+            } else {
+                apply(cachedSnapshot)
+            }
+            await loadBacklogDisplayPreferences()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -61,6 +79,7 @@ final class ProjectViewModel {
 
         do {
             apply(try await projectIssuesUseCase.refresh(projectID: projectID))
+            await loadBacklogDisplayPreferences()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -393,17 +412,21 @@ final class ProjectViewModel {
 
         let deleteSubtasks = issue.subtaskIDs.isEmpty == false
         let deletedIDs = Set([issue.id] + (deleteSubtasks ? issue.subtaskIDs : []))
-        let originalIssues = issues.filter { deletedIDs.contains($0.id) }
         let previousIssues = issues
 
         issues.removeAll { deletedIDs.contains($0.id) }
+        if let parentID = issue.parentID,
+           let parentIndex = issues.firstIndex(where: { $0.id == parentID }) {
+            issues[parentIndex].subtaskIDs.removeAll { $0 == issue.id }
+            issues[parentIndex].updatedAt = Date()
+        }
 
         do {
             try await issueBoardUseCase.commitDeleteIssue(issue, deleteSubtasks: deleteSubtasks)
             return deletedIDs
         } catch {
             issues = previousIssues
-            await issueBoardUseCase.rollbackDeleteIssues(originalIssues)
+            await issueBoardUseCase.rollbackDeleteIssues(previousIssues)
             errorMessage = error.localizedDescription
             return []
         }
@@ -561,6 +584,37 @@ final class ProjectViewModel {
         }
     }
 
+    func saveBacklogDisplayPreferences(
+        sprintOrder: [String],
+        collapsedGroupIDs: Set<String>,
+        selectedSprintFilter: SprintFilter
+    ) {
+        backlogSprintOrder = sprintOrder
+        collapsedBacklogGroupIDs = collapsedGroupIDs
+        self.selectedSprintFilter = selectedSprintFilter
+
+        Task {
+            do {
+                try await displayPreferencesRepository.saveBacklogSprintOrder(
+                    projectID: projectID,
+                    groupIDs: sprintOrder
+                )
+                try await displayPreferencesRepository.saveCollapsedBacklogGroupIDs(
+                    projectID: projectID,
+                    groupIDs: collapsedGroupIDs
+                )
+                try await displayPreferencesRepository.saveSelectedSprintFilter(
+                    projectID: projectID,
+                    filter: selectedSprintFilter
+                )
+            } catch {
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+
     private func apply(_ snapshot: ProjectIssuesSnapshot) {
         issues = snapshot.issues
         kanbanColumnOrder = snapshot.kanbanColumnOrder
@@ -574,6 +628,16 @@ final class ProjectViewModel {
             projectID: projectID,
             forceRefresh: forceRefresh
         )
+    }
+
+    private func loadBacklogDisplayPreferences() async {
+        do {
+            backlogSprintOrder = try await displayPreferencesRepository.backlogSprintOrder(projectID: projectID)
+            collapsedBacklogGroupIDs = try await displayPreferencesRepository.collapsedBacklogGroupIDs(projectID: projectID)
+            selectedSprintFilter = try await displayPreferencesRepository.selectedSprintFilter(projectID: projectID)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     private var defaultIssueStatus: String {

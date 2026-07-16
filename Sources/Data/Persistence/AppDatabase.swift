@@ -130,6 +130,35 @@ final class AppDatabase: @unchecked Sendable {
             }
         }
 
+        migrator.registerMigration("createDisplayPreferences") { db in
+            try db.create(table: ProjectDisplayOrderRecord.databaseTableName) { table in
+                table.column("workspaceID", .text).notNull().references(WorkspaceRecord.databaseTableName, onDelete: .cascade)
+                table.column("projectID", .text).notNull().references(ProjectRecord.databaseTableName, onDelete: .cascade)
+                table.column("position", .integer).notNull()
+                table.primaryKey(["workspaceID", "projectID"])
+            }
+
+            try db.create(table: BacklogSprintOrderRecord.databaseTableName) { table in
+                table.column("projectID", .text).notNull().references(ProjectRecord.databaseTableName, onDelete: .cascade)
+                table.column("groupID", .text).notNull()
+                table.column("position", .integer).notNull()
+                table.primaryKey(["projectID", "groupID"])
+            }
+
+            try db.create(table: BacklogCollapsedGroupRecord.databaseTableName) { table in
+                table.column("projectID", .text).notNull().references(ProjectRecord.databaseTableName, onDelete: .cascade)
+                table.column("groupID", .text).notNull()
+                table.primaryKey(["projectID", "groupID"])
+            }
+        }
+
+        migrator.registerMigration("createBacklogSelectedSprintFilters") { db in
+            try db.create(table: BacklogSelectedSprintFilterRecord.databaseTableName) { table in
+                table.column("projectID", .text).notNull().primaryKey().references(ProjectRecord.databaseTableName, onDelete: .cascade)
+                table.column("filterID", .text).notNull()
+            }
+        }
+
         return migrator
     }
 }

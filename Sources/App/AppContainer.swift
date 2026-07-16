@@ -6,6 +6,7 @@ final class AppContainer {
     let workspaceRepository: WorkspaceRepository
     let issueRepository: IssueRepository
     let kanbanColumnOrderRepository: KanbanColumnOrderRepository
+    let displayPreferencesRepository: DisplayPreferencesRepository
     let syncService: SyncService
     let authService: AuthService
     let secretStore: SecretStore
@@ -24,6 +25,7 @@ final class AppContainer {
         workspaceRepository: WorkspaceRepository,
         issueRepository: IssueRepository,
         kanbanColumnOrderRepository: KanbanColumnOrderRepository,
+        displayPreferencesRepository: DisplayPreferencesRepository,
         syncService: SyncService,
         authService: AuthService,
         secretStore: SecretStore,
@@ -41,6 +43,7 @@ final class AppContainer {
         self.workspaceRepository = workspaceRepository
         self.issueRepository = issueRepository
         self.kanbanColumnOrderRepository = kanbanColumnOrderRepository
+        self.displayPreferencesRepository = displayPreferencesRepository
         self.syncService = syncService
         self.authService = authService
         self.secretStore = secretStore
@@ -59,22 +62,33 @@ final class AppContainer {
         do {
             let database = try AppDatabase.openDefault()
             let seed = SeedDataProvider()
-            let secretStore = KeychainSecretStore(service: "dev.matteofauchon.myjira")
-            let authService = AtlassianAuthService(secretStore: secretStore)
-            let jiraDataService = JiraCloudDataService(authService: authService)
+            let secretStore: SecretStore = LoggingSecretStore(
+                wrapping: KeychainSecretStore(service: "dev.matteofauchon.myjira")
+            )
+            let authService: AuthService = LoggingAuthService(
+                wrapping: AtlassianAuthService(secretStore: secretStore)
+            )
+            let jiraDataService: JiraDataService = LoggingJiraDataService(
+                wrapping: JiraCloudDataService(authService: authService)
+            )
             let workspaceRepository = LocalWorkspaceRepository(database: database, seedDataProvider: seed)
             let issueRepository = LocalIssueRepository(database: database, seedDataProvider: seed)
             let kanbanColumnOrderRepository = LocalKanbanColumnOrderRepository(database: database)
-            let jiraConnectionService = DefaultJiraConnectionService(
-                authService: authService,
-                jiraDataService: jiraDataService,
-                workspaceRepository: workspaceRepository,
-                secretStore: secretStore
+            let displayPreferencesRepository = LocalDisplayPreferencesRepository(database: database)
+            let jiraConnectionService: JiraConnectionService = LoggingJiraConnectionService(
+                wrapping: DefaultJiraConnectionService(
+                    authService: authService,
+                    jiraDataService: jiraDataService,
+                    workspaceRepository: workspaceRepository,
+                    secretStore: secretStore
+                )
             )
-            let syncService = PollingSyncService(
-                workspaceRepository: workspaceRepository,
-                issueRepository: issueRepository,
-                jiraDataService: jiraDataService
+            let syncService: SyncService = LoggingSyncService(
+                wrapping: PollingSyncService(
+                    workspaceRepository: workspaceRepository,
+                    issueRepository: issueRepository,
+                    jiraDataService: jiraDataService
+                )
             )
             let jiraSessionUseCase = JiraSessionUseCase(
                 workspaceRepository: workspaceRepository,
@@ -110,6 +124,7 @@ final class AppContainer {
                 workspaceRepository: workspaceRepository,
                 issueRepository: issueRepository,
                 kanbanColumnOrderRepository: kanbanColumnOrderRepository,
+                displayPreferencesRepository: displayPreferencesRepository,
                 syncService: syncService,
                 authService: authService,
                 secretStore: secretStore,

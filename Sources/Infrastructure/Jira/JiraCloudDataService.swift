@@ -6,6 +6,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     private let replyParentPropertyKey = "myjira.parentCommentId"
     private let authService: AuthService
     private let urlSession: URLSession
+    private let transitionCache = JiraTransitionCache()
 
     init(authService: AuthService, urlSession: URLSession = .shared) {
         self.authService = authService
@@ -560,17 +561,19 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
             throw AuthError.invalidConfiguration
         }
 
-        let transitions = try await transitions(
+        let transitions = try await cachedTransitions(
+            issue: issue,
             issueKey: issue.key,
             cloudID: cloudID,
             accessToken: token.accessToken
         )
 
-        guard let transition = transitions.first(where: {
-            $0.to.name.localizedCaseInsensitiveCompare(status) == .orderedSame
-        }) else {
+        guard let transition = resolveTransition(toStatus: status, from: transitions) else {
+            let availableTransitions = transitions
+                .map { "\($0.name) -> \($0.to.name)" }
+                .joined(separator: ", ")
             throw AuthError.failedTokenExchange(
-                "No Jira transition available from \(issue.status) to \(status) for \(issue.key)."
+                "No Jira transition available from \(issue.status) to \(status) for \(issue.key). Available: \(availableTransitions)"
             )
         }
 
@@ -580,6 +583,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
             accessToken: token.accessToken,
             transitionID: transition.id
         )
+        await clearTransitionsCache(issue: issue)
     }
 
     func updateSprint(issue: Issue, sprintName: String?) async throws -> IssueSprintValue {
@@ -974,6 +978,57 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
         }
 
         return try JSONDecoder().decode(IssueTransitionsResponse.self, from: data).transitions
+    }
+
+    private func cachedTransitions(
+        issue: Issue,
+        issueKey: String,
+        cloudID: String,
+        accessToken: String
+    ) async throws -> [IssueTransitionDTO] {
+        let cacheKey = transitionCacheKey(issue: issue)
+        if let cachedTransitions = await transitionCache.transitions(for: cacheKey) {
+            return cachedTransitions
+        }
+
+        let transitions = try await transitions(
+            issueKey: issueKey,
+            cloudID: cloudID,
+            accessToken: accessToken
+        )
+
+        await transitionCache.set(transitions, for: cacheKey)
+        return transitions
+    }
+
+    private func clearTransitionsCache(issue: Issue) async {
+        await transitionCache.clear(transitionCacheKey(issue: issue))
+    }
+
+    private func transitionCacheKey(issue: Issue) -> String {
+        "\(issue.id)|\(issue.status)"
+    }
+
+    private func resolveTransition(toStatus status: String, from transitions: [IssueTransitionDTO]) -> IssueTransitionDTO? {
+        let normalizedTarget = normalizedTransitionMatchValue(status)
+
+        return transitions.first {
+            $0.to.name.localizedCaseInsensitiveCompare(status) == .orderedSame
+        } ?? transitions.first {
+            normalizedTransitionMatchValue($0.to.name) == normalizedTarget
+        } ?? transitions.first {
+            $0.name.localizedCaseInsensitiveCompare(status) == .orderedSame
+        } ?? transitions.first {
+            normalizedTransitionMatchValue($0.name) == normalizedTarget
+        }
+    }
+
+    private func normalizedTransitionMatchValue(_ value: String) -> String {
+        value
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+            .components(separatedBy: CharacterSet.alphanumerics.inverted)
+            .filter { !$0.isEmpty }
+            .joined()
     }
 
     private func resolveSprint(
@@ -1619,20 +1674,36 @@ private extension CodingUserInfoKey {
     static let storyPointsFieldIDs = CodingUserInfoKey(rawValue: "storyPointsFieldIDs")!
 }
 
-private struct IssueStatusDTO: Decodable {
+private actor JiraTransitionCache {
+    private var transitionsByKey: [String: [IssueTransitionDTO]] = [:]
+
+    func transitions(for key: String) -> [IssueTransitionDTO]? {
+        transitionsByKey[key]
+    }
+
+    func set(_ transitions: [IssueTransitionDTO], for key: String) {
+        transitionsByKey[key] = transitions
+    }
+
+    func clear(_ key: String) {
+        transitionsByKey[key] = nil
+    }
+}
+
+private struct IssueStatusDTO: Decodable, Sendable {
     var name: String
     var statusCategory: IssueStatusCategoryDTO?
 }
 
-private struct IssueStatusCategoryDTO: Decodable {
+private struct IssueStatusCategoryDTO: Decodable, Sendable {
     var key: String
 }
 
-private struct IssueTransitionsResponse: Decodable {
+private struct IssueTransitionsResponse: Decodable, Sendable {
     var transitions: [IssueTransitionDTO]
 }
 
-private struct IssueTransitionDTO: Decodable {
+private struct IssueTransitionDTO: Decodable, Sendable {
     var id: String
     var name: String
     var to: IssueStatusDTO

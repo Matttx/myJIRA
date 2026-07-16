@@ -13,6 +13,7 @@ struct IssueDetailView: View {
     let isAddingComment: Bool
     let isCreatingIssue: Bool
     let onChangeStatus: (Issue.ID, String) -> Void
+    let onUpdateStoryPoints: (Issue.ID, Double?) -> Void
     let onUpdateSummary: (Issue.ID, String) async -> Bool
     let onUpdateDescription: (Issue.ID, String?) async -> Bool
     let onAddComment: (Issue.ID, String, IssueComment?) async -> Bool
@@ -29,6 +30,7 @@ struct IssueDetailView: View {
     @State private var selectedPage: IssueDetailPage = .subtasks
     @State private var replyingToComment: IssueComment?
     @State private var commentToDelete: IssueComment?
+    @State private var subtaskToDelete: Issue?
     @State private var isDeleteIssueConfirmationPresented = false
 
     var body: some View {
@@ -60,6 +62,7 @@ struct IssueDetailView: View {
                     selectedPage = .subtasks
                     replyingToComment = nil
                     commentToDelete = nil
+                    subtaskToDelete = nil
                     isDeleteIssueConfirmationPresented = false
                 }
                 .onChange(of: selectedPage) { _, page in
@@ -105,6 +108,14 @@ struct IssueDetailView: View {
                     },
                     onAssign: { user in
                         onAssignIssue(issue.id, user)
+                    }
+                )
+
+                EditableStoryPointsTag(
+                    storyPoints: issue.storyPoints,
+                    isSelected: false,
+                    onCommit: { storyPoints in
+                        onUpdateStoryPoints(issue.id, storyPoints)
                     }
                 )
             }
@@ -289,9 +300,15 @@ struct IssueDetailView: View {
             } else {
                 VStack(spacing: 6) {
                     ForEach(subtasks) { subtask in
-                        SubtaskRowView(subtask: subtask) {
-                            onSelectIssue(subtask.id)
-                        }
+                        SubtaskRowView(
+                            subtask: subtask,
+                            onSelect: {
+                                onSelectIssue(subtask.id)
+                            },
+                            onDelete: {
+                                subtaskToDelete = subtask
+                            }
+                        )
                     }
                 }
             }
@@ -305,6 +322,32 @@ struct IssueDetailView: View {
                     await onCreateSubtask(issue.id, draft)
                 }
             )
+        }
+        .confirmationDialog(
+            "Delete subtask?",
+            isPresented: Binding(
+                get: { subtaskToDelete != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        subtaskToDelete = nil
+                    }
+                }
+            )
+        ) {
+            Button("Delete", role: .destructive) {
+                if let subtaskToDelete {
+                    onDeleteIssue(subtaskToDelete.id)
+                }
+                subtaskToDelete = nil
+            }
+
+            Button("Cancel", role: .cancel) {
+                subtaskToDelete = nil
+            }
+        } message: {
+            if let subtaskToDelete {
+                Text("This will delete \(subtaskToDelete.key) from Jira.")
+            }
         }
     }
 
