@@ -45,11 +45,11 @@ final class IssueCreationUseCase: @unchecked Sendable {
         defaultStatus: String,
         targetSprintName: String?,
         targetSprintState: String?,
-        assigneeName: String?
+        assignee: JiraUser?
     ) async throws -> Issue {
         let project = try await project(projectID: projectID)
         let createdIssue = try await jiraDataService.createIssue(in: project, draft: draft)
-        let now = Date()
+        let now = Date.now
         let description = draft.descriptionText?.trimmingCharacters(in: .whitespacesAndNewlines)
 
         let issue = Issue(
@@ -64,7 +64,8 @@ final class IssueCreationUseCase: @unchecked Sendable {
             sprintID: draft.targetSprintID,
             sprintName: targetSprintName,
             sprintState: targetSprintState,
-            assigneeName: assigneeName,
+            assigneeName: assignee?.displayName,
+            assigneeAccountID: assignee?.accountID,
             createdAt: now,
             updatedAt: now
         )
@@ -80,7 +81,7 @@ final class IssueCreationUseCase: @unchecked Sendable {
         draft: IssueCreationDraft,
         issueTypeName: String?,
         defaultStatus: String,
-        assigneeName: String?
+        assignee: JiraUser?
     ) async throws -> Issue {
         let project = try await project(projectID: projectID)
         var subtaskDraft = draft
@@ -89,7 +90,7 @@ final class IssueCreationUseCase: @unchecked Sendable {
         subtaskDraft.storyPoints = nil
 
         let createdIssue = try await jiraDataService.createIssue(in: project, draft: subtaskDraft)
-        let now = Date()
+        let now = Date.now
         let description = draft.descriptionText?.trimmingCharacters(in: .whitespacesAndNewlines)
 
         let subtask = Issue(
@@ -106,7 +107,8 @@ final class IssueCreationUseCase: @unchecked Sendable {
             parentID: parentIssue.id,
             parentKey: parentIssue.key,
             isSubtask: true,
-            assigneeName: assigneeName,
+            assigneeName: assignee?.displayName,
+            assigneeAccountID: assignee?.accountID,
             createdAt: now,
             updatedAt: now
         )

@@ -1,0 +1,5 @@
+ATLASSIAN_CLIENT_ID =
+ATLASSIAN_CLIENT_SECRET =
+
+// Local credentials override the empty defaults above without entering Git.
+#include? "Secrets.xcconfig"

@@ -27,7 +27,7 @@ struct MainWindowView: View {
         .onReceive(NotificationCenter.default.publisher(for: .refreshRequested)) { _ in
             Task { await viewModel.refreshCurrentProject() }
         }
-        .alert("Unable to refresh", isPresented: errorPresentation) {
+        .alert("Unable to complete action", isPresented: errorPresentation) {
             Button("OK") {
                 clearError()
             }

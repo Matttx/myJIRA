@@ -87,9 +87,20 @@
 		10000000000000000000004E /* LoggingServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000014E /* LoggingServices.swift */; };
 		10000000000000000000004F /* DisplayPreferencesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000014F /* DisplayPreferencesRepository.swift */; };
 		100000000000000000000050 /* LocalDisplayPreferencesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000150 /* LocalDisplayPreferencesRepository.swift */; };
+		100000000000000000000051 /* PersonalDataAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000152 /* PersonalDataAccount.swift */; };
+		100000000000000000000052 /* PersonalDataRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000153 /* PersonalDataRepository.swift */; };
+		100000000000000000000053 /* PersonalDataReportingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000154 /* PersonalDataReportingService.swift */; };
+		100000000000000000000054 /* LocalPersonalDataRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000155 /* LocalPersonalDataRepository.swift */; };
+		100000000000000000000055 /* AtlassianPersonalDataReportingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000156 /* AtlassianPersonalDataReportingService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		100000000000000000000151 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = SOURCE_ROOT; };
+		100000000000000000000152 /* PersonalDataAccount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalDataAccount.swift; sourceTree = "<group>"; };
+		100000000000000000000153 /* PersonalDataRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalDataRepository.swift; sourceTree = "<group>"; };
+		100000000000000000000154 /* PersonalDataReportingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalDataReportingService.swift; sourceTree = "<group>"; };
+		100000000000000000000155 /* LocalPersonalDataRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalPersonalDataRepository.swift; sourceTree = "<group>"; };
+		100000000000000000000156 /* AtlassianPersonalDataReportingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlassianPersonalDataReportingService.swift; sourceTree = "<group>"; };
 		100000000000000000000100 /* myJIRA.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = myJIRA.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		100000000000000000000101 /* myJIRAApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = myJIRAApp.swift; sourceTree = "<group>"; };
 		100000000000000000000102 /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
@@ -237,6 +248,7 @@
 				100000000000000000000106 /* Issue.swift */,
 				10000000000000000000012E /* IssueSprintValue.swift */,
 				10000000000000000000012F /* IssueCreation.swift */,
+				100000000000000000000152 /* PersonalDataAccount.swift */,
 			);
 			path = Entities;
 			sourceTree = "<group>";
@@ -248,6 +260,7 @@
 				100000000000000000000108 /* IssueRepository.swift */,
 				100000000000000000000126 /* KanbanColumnOrderRepository.swift */,
 				10000000000000000000014F /* DisplayPreferencesRepository.swift */,
+				100000000000000000000153 /* PersonalDataRepository.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -278,6 +291,7 @@
 				10000000000000000000010F /* LocalIssueRepository.swift */,
 				100000000000000000000127 /* LocalKanbanColumnOrderRepository.swift */,
 				100000000000000000000150 /* LocalDisplayPreferencesRepository.swift */,
+				100000000000000000000155 /* LocalPersonalDataRepository.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -297,6 +311,7 @@
 				10000000000000000000030C /* Sync */,
 				100000000000000000000310 /* Jira */,
 				10000000000000000000031A /* Logging */,
+				10000000000000000000031B /* Privacy */,
 			);
 			path = Infrastructure;
 			sourceTree = "<group>";
@@ -350,6 +365,7 @@
 				10000000000000000000010A /* JiraDataService.swift */,
 				10000000000000000000011F /* JiraConnectionService.swift */,
 				10000000000000000000010B /* SyncService.swift */,
+				100000000000000000000154 /* PersonalDataReportingService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -360,6 +376,14 @@
 				100000000000000000000115 /* JiraCloudDataService.swift */,
 			);
 			path = Jira;
+			sourceTree = "<group>";
+		};
+		10000000000000000000031B /* Privacy */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000156 /* AtlassianPersonalDataReportingService.swift */,
+			);
+			path = Privacy;
 			sourceTree = "<group>";
 		};
 		100000000000000000000311 /* Views */ = {
@@ -588,6 +612,11 @@
 				10000000000000000000000F /* LocalIssueRepository.swift in Sources */,
 				100000000000000000000027 /* LocalKanbanColumnOrderRepository.swift in Sources */,
 				100000000000000000000050 /* LocalDisplayPreferencesRepository.swift in Sources */,
+				100000000000000000000051 /* PersonalDataAccount.swift in Sources */,
+				100000000000000000000052 /* PersonalDataRepository.swift in Sources */,
+				100000000000000000000053 /* PersonalDataReportingService.swift in Sources */,
+				100000000000000000000054 /* LocalPersonalDataRepository.swift in Sources */,
+				100000000000000000000055 /* AtlassianPersonalDataReportingService.swift in Sources */,
 				100000000000000000000010 /* SeedDataProvider.swift in Sources */,
 				100000000000000000000011 /* AtlassianAuthService.swift in Sources */,
 				100000000000000000000012 /* AuthModels.swift in Sources */,
@@ -755,6 +784,7 @@
 		};
 		100000000000000000000703 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 100000000000000000000151 /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -783,6 +813,7 @@
 		};
 		100000000000000000000704 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 100000000000000000000151 /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

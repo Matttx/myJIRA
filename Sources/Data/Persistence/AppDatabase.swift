@@ -159,6 +159,64 @@ final class AppDatabase: @unchecked Sendable {
             }
         }
 
+        migrator.registerMigration("addPersonalDataReporting") { db in
+            try db.alter(table: IssueRecord.databaseTableName) { table in
+                table.add(column: "reporterAccountID", .text)
+                table.add(column: "assigneeAccountID", .text)
+            }
+
+            try db.create(table: PersonalDataAccountRecord.databaseTableName) { table in
+                table.column("accountID", .text).primaryKey()
+                table.column("oldestRetrievedAt", .datetime).notNull()
+                table.column("nextReportAt", .datetime)
+            }
+
+            try db.create(table: PersonalDataReferenceRecord.databaseTableName) { table in
+                table.column("accountID", .text).notNull().references(PersonalDataAccountRecord.databaseTableName, onDelete: .cascade)
+                table.column("issueID", .text).notNull().references(IssueRecord.databaseTableName, onDelete: .cascade)
+                table.primaryKey(["accountID", "issueID"])
+            }
+
+            // Older rows did not retain every accountId. Remove names that cannot
+            // be reported and index the comment identities that can be recovered.
+            let now = Date.now
+            for var record in try IssueRecord.fetchAll(db) {
+                var comments = record.domainValue.comments
+                for index in comments.indices {
+                    guard let accountID = comments[index].authorAccountID,
+                          !accountID.isEmpty,
+                          accountID != "unknown"
+                    else {
+                        comments[index].authorName = nil
+                        comments[index].authorAccountID = nil
+                        continue
+                    }
+
+                    try PersonalDataAccountRecord(
+                        accountID: accountID,
+                        oldestRetrievedAt: now,
+                        nextReportAt: nil
+                    ).insert(db, onConflict: .ignore)
+                    try PersonalDataReferenceRecord(accountID: accountID, issueID: record.id)
+                        .insert(db, onConflict: .ignore)
+                }
+
+                var changes = record.domainValue.changes
+                for index in changes.indices {
+                    changes[index].authorName = nil
+                    changes[index].authorAccountID = nil
+                }
+
+                record.reporterName = nil
+                record.reporterAccountID = nil
+                record.assigneeName = nil
+                record.assigneeAccountID = nil
+                record.commentsJSON = String(data: try JSONEncoder().encode(comments), encoding: .utf8) ?? "[]"
+                record.changesJSON = String(data: try JSONEncoder().encode(changes), encoding: .utf8) ?? "[]"
+                try record.update(db)
+            }
+        }
+
         return migrator
     }
 }

@@ -7,6 +7,38 @@ struct JiraOAuthConfiguration: Sendable {
     var scopes: [String]
 }
 
+extension JiraOAuthConfiguration {
+    static let bundled: JiraOAuthConfiguration? = {
+        guard
+            let clientID = bundledValue(forInfoKey: "AtlassianOAuthClientID"),
+            let clientSecret = bundledValue(forInfoKey: "AtlassianOAuthClientSecret"),
+            let redirectURI = URL(string: "myjira://oauth/callback")
+        else {
+            return nil
+        }
+
+        return JiraOAuthConfiguration(
+            clientID: clientID,
+            clientSecret: clientSecret,
+            redirectURI: redirectURI,
+            scopes: JiraOAuthScopes.defaultScopes
+        )
+    }()
+
+    private static func bundledValue(forInfoKey key: String) -> String? {
+        guard let value = Bundle.main.object(forInfoDictionaryKey: key) as? String else {
+            return nil
+        }
+
+        let trimmedValue = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedValue.isEmpty, !trimmedValue.contains("$(") else {
+            return nil
+        }
+
+        return trimmedValue
+    }
+}
+
 enum JiraOAuthScopes {
     static let defaultScopes = [
         "read:jira-user",
@@ -33,6 +65,12 @@ struct JiraTokenSet: Codable, Sendable {
     var refreshToken: String?
     var expiresAt: Date
     var scope: String?
+
+    func grants(anyOf requiredScopes: Set<String>) -> Bool {
+        guard let scope else { return true }
+        let grantedScopes = Set(scope.split(whereSeparator: \.isWhitespace).map(String.init))
+        return !grantedScopes.isDisjoint(with: requiredScopes)
+    }
 }
 
 struct JiraAccessibleResource: Codable, Identifiable, Hashable, Sendable {
@@ -58,6 +96,7 @@ enum AuthError: LocalizedError {
     case failedTokenExchange(String)
     case invalidServerResponse
     case authorizationDenied(String)
+    case missingRequiredScope
 
     var errorDescription: String? {
         switch self {
@@ -73,6 +112,8 @@ enum AuthError: LocalizedError {
             "Atlassian returned an unexpected response."
         case .authorizationDenied(let message):
             message
+        case .missingRequiredScope:
+            "Your Jira connection does not allow issue creation. Reconnect your Atlassian account in Settings to grant the required permissions."
         }
     }
 }

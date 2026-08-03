@@ -28,6 +28,7 @@ final class MainWindowViewModel {
     private let issueCreationUseCase: IssueCreationUseCase
     private let projectUsersManager: ProjectUsersManager
     private let displayPreferencesRepository: DisplayPreferencesRepository
+    private let personalDataReportingService: PersonalDataReportingService
     private var projectViewModels: [Project.ID: ProjectViewModel] = [:]
 
     init(
@@ -38,7 +39,8 @@ final class MainWindowViewModel {
         issueDetailUseCase: IssueDetailUseCase,
         issueCreationUseCase: IssueCreationUseCase,
         projectUsersManager: ProjectUsersManager,
-        displayPreferencesRepository: DisplayPreferencesRepository
+        displayPreferencesRepository: DisplayPreferencesRepository,
+        personalDataReportingService: PersonalDataReportingService
     ) {
         self.jiraSessionUseCase = jiraSessionUseCase
         self.projectIssuesUseCase = projectIssuesUseCase
@@ -48,6 +50,7 @@ final class MainWindowViewModel {
         self.issueCreationUseCase = issueCreationUseCase
         self.projectUsersManager = projectUsersManager
         self.displayPreferencesRepository = displayPreferencesRepository
+        self.personalDataReportingService = personalDataReportingService
     }
 
     func loadInitialSelection(router: AppRouter) async {
@@ -70,6 +73,7 @@ final class MainWindowViewModel {
         ensureValidInitialSelection(router: router)
 
         await selectProject(router.selectedProjectID)
+        await reportPersonalDataIfDue()
     }
 
     func connect(configuration: JiraOAuthConfiguration, router: AppRouter) async {
@@ -102,6 +106,18 @@ final class MainWindowViewModel {
 
         do {
             workspaces = try await orderedWorkspaces(try await jiraSessionUseCase.workspaces())
+            await reportPersonalDataIfDue()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func reportPersonalDataIfDue() async {
+        do {
+            let erasedPersonalData = try await personalDataReportingService.reportIfDue()
+            if erasedPersonalData {
+                await currentProjectViewModel?.reloadAfterPersonalDataErasure()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -50,6 +50,12 @@ final class LoggingAuthService: AuthService, @unchecked Sendable {
         }
     }
 
+    func validToken() async throws -> JiraTokenSet? {
+        try await logs.measure(service: "AuthService", operation: "validToken") {
+            try await wrapped.validToken()
+        }
+    }
+
     func disconnect() throws {
         try logs.measure(service: "AuthService", operation: "disconnect") {
             try wrapped.disconnect()

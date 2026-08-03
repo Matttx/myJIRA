@@ -1,3 +1,4 @@
+@preconcurrency import AppKit
 import Foundation
 import SwiftUI
 
@@ -126,6 +127,12 @@ struct KanbanIssueCard: View {
             Label("Edit", systemImage: "square.and.pencil")
         }
 
+        Button {
+            copyIssueKey()
+        } label: {
+            Label("Copy ticket ID", systemImage: "doc.on.doc")
+        }
+
         Divider()
 
         Button(role: .destructive) {
@@ -133,6 +140,11 @@ struct KanbanIssueCard: View {
         } label: {
             Label("Delete", systemImage: "trash")
         }
+    }
+
+    private func copyIssueKey() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(issue.key, forType: .string)
     }
 
     private var secondaryForeground: Color {

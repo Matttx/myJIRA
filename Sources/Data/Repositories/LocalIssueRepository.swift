@@ -33,25 +33,26 @@ final class LocalIssueRepository: IssueRepository, @unchecked Sendable {
     func upsertIssue(_ issue: Issue) async throws {
         try await database.writer.write { db in
             try IssueRecord(issue: issue).upsert(db)
+            try replacePersonalDataReferences(for: issue, db: db)
         }
     }
 
     func deleteIssue(issueID: Issue.ID) async throws {
         _ = try await database.writer.write { db in
-            try IssueRecord
+            let deletedCount = try IssueRecord
                 .filter(Column("id") == issueID)
                 .deleteAll(db)
+            try removeOrphanedPersonalDataAccounts(db: db)
+            return deletedCount
         }
     }
 
     func replaceIssues(projectID: Project.ID, issues: [Issue]) async throws {
         try await database.writer.write { db in
-            let existingChangesByID = try IssueRecord
+            let existingRecords = try IssueRecord
                 .filter(Column("projectID") == projectID)
                 .fetchAll(db)
-                .reduce(into: [Issue.ID: [IssueChange]]()) { result, record in
-                    result[record.id] = record.domainValue.changes
-                }
+            let existingChangesByID = Dictionary(uniqueKeysWithValues: existingRecords.map { ($0.id, $0.domainValue.changes) })
 
             try IssueRecord
                 .filter(Column("projectID") == projectID)
@@ -64,7 +65,13 @@ final class LocalIssueRepository: IssueRepository, @unchecked Sendable {
                 }
 
                 try IssueRecord(issue: nextIssue).upsert(db)
+                try replacePersonalDataReferences(
+                    for: nextIssue,
+                    cleanupOrphans: false,
+                    db: db
+                )
             }
+            try removeOrphanedPersonalDataAccounts(db: db)
         }
     }
 
@@ -79,14 +86,16 @@ final class LocalIssueRepository: IssueRepository, @unchecked Sendable {
         }
     }
 
-    func updateAssignee(issueID: Issue.ID, assigneeName: String?) async throws {
+    func updateAssignee(issueID: Issue.ID, assigneeName: String?, assigneeAccountID: String?) async throws {
         _ = try await database.writer.write { db in
             try IssueRecord
                 .filter(Column("id") == issueID)
                 .updateAll(db, [
                     Column("assigneeName").set(to: assigneeName),
+                    Column("assigneeAccountID").set(to: assigneeAccountID),
                     Column("updatedAt").set(to: Date())
                 ])
+            try refreshPersonalDataReferences(issueID: issueID, db: db)
         }
     }
 
@@ -147,6 +156,7 @@ final class LocalIssueRepository: IssueRepository, @unchecked Sendable {
                     Column("commentsJSON").set(to: commentsJSON),
                     Column("updatedAt").set(to: Date())
                 ])
+            try refreshPersonalDataReferences(issueID: issueID, db: db)
         }
     }
 
@@ -160,6 +170,48 @@ final class LocalIssueRepository: IssueRepository, @unchecked Sendable {
                 .updateAll(db, [
                     Column("changesJSON").set(to: changesJSON)
                 ])
+            try refreshPersonalDataReferences(issueID: issueID, db: db)
         }
+    }
+
+    private func refreshPersonalDataReferences(
+        issueID: Issue.ID,
+        db: Database
+    ) throws {
+        guard let issue = try IssueRecord.fetchOne(db, key: issueID)?.domainValue else { return }
+        try replacePersonalDataReferences(for: issue, db: db)
+    }
+
+    private func replacePersonalDataReferences(
+        for issue: Issue,
+        cleanupOrphans: Bool = true,
+        db: Database
+    ) throws {
+        try PersonalDataReferenceRecord
+            .filter(Column("issueID") == issue.id)
+            .deleteAll(db)
+
+        let now = Date.now
+        for accountID in issue.personalDataAccountIDs {
+            try PersonalDataAccountRecord(
+                accountID: accountID,
+                oldestRetrievedAt: now,
+                nextReportAt: nil
+            ).insert(db, onConflict: .ignore)
+            try PersonalDataReferenceRecord(accountID: accountID, issueID: issue.id).insert(db)
+        }
+
+        if cleanupOrphans {
+            try removeOrphanedPersonalDataAccounts(db: db)
+        }
+    }
+
+    private func removeOrphanedPersonalDataAccounts(db: Database) throws {
+        try db.execute(sql: """
+            DELETE FROM \(PersonalDataAccountRecord.databaseTableName)
+            WHERE accountID NOT IN (
+                SELECT DISTINCT accountID FROM \(PersonalDataReferenceRecord.databaseTableName)
+            )
+            """)
     }
 }

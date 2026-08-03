@@ -19,6 +19,7 @@ final class AppContainer {
     let issueDetailUseCase: IssueDetailUseCase
     let issueCreationUseCase: IssueCreationUseCase
     let projectUsersManager: ProjectUsersManager
+    let personalDataReportingService: PersonalDataReportingService
 
     init(
         database: AppDatabase,
@@ -37,7 +38,8 @@ final class AppContainer {
         issueHierarchyUseCase: IssueHierarchyUseCase,
         issueDetailUseCase: IssueDetailUseCase,
         issueCreationUseCase: IssueCreationUseCase,
-        projectUsersManager: ProjectUsersManager
+        projectUsersManager: ProjectUsersManager,
+        personalDataReportingService: PersonalDataReportingService
     ) {
         self.database = database
         self.workspaceRepository = workspaceRepository
@@ -56,6 +58,7 @@ final class AppContainer {
         self.issueDetailUseCase = issueDetailUseCase
         self.issueCreationUseCase = issueCreationUseCase
         self.projectUsersManager = projectUsersManager
+        self.personalDataReportingService = personalDataReportingService
     }
 
     static func live() -> AppContainer {
@@ -75,12 +78,16 @@ final class AppContainer {
             let issueRepository = LocalIssueRepository(database: database, seedDataProvider: seed)
             let kanbanColumnOrderRepository = LocalKanbanColumnOrderRepository(database: database)
             let displayPreferencesRepository = LocalDisplayPreferencesRepository(database: database)
+            let personalDataRepository = LocalPersonalDataRepository(database: database)
+            let personalDataReportingService = AtlassianPersonalDataReportingService(
+                authService: authService,
+                repository: personalDataRepository
+            )
             let jiraConnectionService: JiraConnectionService = LoggingJiraConnectionService(
                 wrapping: DefaultJiraConnectionService(
                     authService: authService,
                     jiraDataService: jiraDataService,
-                    workspaceRepository: workspaceRepository,
-                    secretStore: secretStore
+                    workspaceRepository: workspaceRepository
                 )
             )
             let syncService: SyncService = LoggingSyncService(
@@ -136,7 +143,8 @@ final class AppContainer {
                 issueHierarchyUseCase: issueHierarchyUseCase,
                 issueDetailUseCase: issueDetailUseCase,
                 issueCreationUseCase: issueCreationUseCase,
-                projectUsersManager: projectUsersManager
+                projectUsersManager: projectUsersManager,
+                personalDataReportingService: personalDataReportingService
             )
         } catch {
             fatalError("Unable to open local database: \(error)")

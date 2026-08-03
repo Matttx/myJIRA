@@ -85,6 +85,16 @@ final class ProjectViewModel {
         }
     }
 
+    func reloadAfterPersonalDataErasure() async {
+        do {
+            apply(try await projectIssuesUseCase.load(projectID: projectID))
+            currentUser = nil
+            assignableUsers = []
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func loadIssueCreationOptions() async {
         isLoadingIssueCreation = true
         errorMessage = nil
@@ -133,7 +143,7 @@ final class ProjectViewModel {
         do {
             let issueTypeName = issueTypes.first(where: { $0.id == draft.issueTypeID })?.name
             let sprintContext = sprintContext(for: draft.targetSprintID)
-            let assigneeName = try await assigneeNameIfNeeded(draft: draft)
+            let assignee = try await assigneeIfNeeded(draft: draft)
             let createdIssue = try await issueCreationUseCase.createIssue(
                 projectID: projectID,
                 draft: draft,
@@ -141,7 +151,7 @@ final class ProjectViewModel {
                 defaultStatus: defaultIssueStatus,
                 targetSprintName: sprintContext.name,
                 targetSprintState: sprintContext.state,
-                assigneeName: assigneeName
+                assignee: assignee
             )
 
             insertOrReplaceLocalIssue(createdIssue)
@@ -176,14 +186,14 @@ final class ProjectViewModel {
 
         do {
             let issueTypeName = subtaskIssueTypes.first(where: { $0.id == draft.issueTypeID })?.name
-            let assigneeName = try await assigneeNameIfNeeded(draft: draft)
+            let assignee = try await assigneeIfNeeded(draft: draft)
             let createdSubtask = try await issueCreationUseCase.createSubtask(
                 projectID: projectID,
                 parentIssue: parentIssue,
                 draft: draft,
                 issueTypeName: issueTypeName,
                 defaultStatus: defaultIssueStatus,
-                assigneeName: assigneeName
+                assignee: assignee
             )
 
             insertOrReplaceLocalIssue(createdSubtask)
@@ -207,6 +217,7 @@ final class ProjectViewModel {
         let optimisticName = currentUser?.displayName ?? "Me"
         var optimisticIssue = originalIssue
         optimisticIssue.assigneeName = optimisticName
+        optimisticIssue.assigneeAccountID = currentUser?.accountID
         optimisticIssue.updatedAt = Date()
         issues[index] = optimisticIssue
 
@@ -242,6 +253,7 @@ final class ProjectViewModel {
         let originalIssue = issues[index]
         var optimisticIssue = originalIssue
         optimisticIssue.assigneeName = user.displayName
+        optimisticIssue.assigneeAccountID = user.accountID
         optimisticIssue.updatedAt = Date()
         issues[index] = optimisticIssue
 
@@ -266,6 +278,7 @@ final class ProjectViewModel {
         let originalIssue = issues[index]
         var optimisticIssue = originalIssue
         optimisticIssue.assigneeName = nil
+        optimisticIssue.assigneeAccountID = nil
         optimisticIssue.updatedAt = Date()
         issues[index] = optimisticIssue
 
@@ -660,16 +673,16 @@ final class ProjectViewModel {
         return (issue.sprintName, issue.sprintState)
     }
 
-    private func assigneeNameIfNeeded(draft: IssueCreationDraft) async throws -> String? {
+    private func assigneeIfNeeded(draft: IssueCreationDraft) async throws -> JiraUser? {
         guard draft.assignToCurrentUser else { return nil }
 
         if let currentUser {
-            return currentUser.displayName
+            return currentUser
         }
 
         let user = try await issueCreationUseCase.currentUser(projectID: projectID)
         currentUser = user
-        return user.displayName
+        return user
     }
 
     private func insertOrReplaceLocalIssue(_ issue: Issue) {

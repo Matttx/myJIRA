@@ -44,6 +44,7 @@ final class LocalWorkspaceRepository: WorkspaceRepository, @unchecked Sendable {
     func replace(workspaces: [Workspace]) async throws {
         try await database.writer.write { db in
             try IssueRecord.deleteAll(db)
+            try PersonalDataAccountRecord.deleteAll(db)
             try ProjectRecord.deleteAll(db)
             try WorkspaceRecord.deleteAll(db)
 

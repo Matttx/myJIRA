@@ -33,6 +33,7 @@ struct IssueRecord: Codable, FetchableRecord, PersistableRecord {
     var issueTypeName: String?
     var priorityName: String?
     var reporterName: String?
+    var reporterAccountID: String?
     var labelsJSON: String
     var storyPointsFieldID: String?
     var storyPoints: Double?
@@ -44,8 +45,24 @@ struct IssueRecord: Codable, FetchableRecord, PersistableRecord {
     var isSubtask: Bool
     var subtaskIDsJSON: String
     var assigneeName: String?
+    var assigneeAccountID: String?
     var createdAt: Date?
     var updatedAt: Date
+}
+
+struct PersonalDataReferenceRecord: Codable, FetchableRecord, PersistableRecord {
+    static let databaseTableName = "personalDataReferences"
+
+    var accountID: String
+    var issueID: String
+}
+
+struct PersonalDataAccountRecord: Codable, FetchableRecord, PersistableRecord {
+    static let databaseTableName = "personalDataAccounts"
+
+    var accountID: String
+    var oldestRetrievedAt: Date
+    var nextReportAt: Date?
 }
 
 struct KanbanColumnOrderRecord: Codable, FetchableRecord, PersistableRecord {
@@ -121,6 +138,7 @@ extension IssueRecord {
         issueTypeName = issue.issueTypeName
         priorityName = issue.priorityName
         reporterName = issue.reporterName
+        reporterAccountID = issue.reporterAccountID
         labelsJSON = (try? String(data: JSONEncoder().encode(issue.labels), encoding: .utf8)) ?? "[]"
         storyPointsFieldID = issue.storyPointsFieldID
         storyPoints = issue.storyPoints
@@ -132,6 +150,7 @@ extension IssueRecord {
         isSubtask = issue.isSubtask
         subtaskIDsJSON = (try? String(data: JSONEncoder().encode(issue.subtaskIDs), encoding: .utf8)) ?? "[]"
         assigneeName = issue.assigneeName
+        assigneeAccountID = issue.assigneeAccountID
         createdAt = issue.createdAt
         updatedAt = issue.updatedAt
     }
@@ -155,6 +174,7 @@ extension IssueRecord {
             issueTypeName: issueTypeName,
             priorityName: priorityName,
             reporterName: reporterName,
+            reporterAccountID: reporterAccountID,
             labels: labels,
             storyPointsFieldID: storyPointsFieldID,
             storyPoints: storyPoints,
@@ -166,6 +186,7 @@ extension IssueRecord {
             isSubtask: isSubtask,
             subtaskIDs: subtaskIDs,
             assigneeName: assigneeName,
+            assigneeAccountID: assigneeAccountID,
             createdAt: createdAt,
             updatedAt: updatedAt
         )

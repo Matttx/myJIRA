@@ -31,6 +31,10 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>AtlassianOAuthClientID</key>
+	<string>$(ATLASSIAN_CLIENT_ID)</string>
+	<key>AtlassianOAuthClientSecret</key>
+	<string>$(ATLASSIAN_CLIENT_SECRET)</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>14.0</string>
 	<key>NSPrincipalClass</key>

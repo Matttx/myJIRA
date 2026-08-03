@@ -3,6 +3,7 @@ import Foundation
 protocol AuthService: Sendable {
     func connect(configuration: JiraOAuthConfiguration) async throws -> [JiraAccessibleResource]
     func currentToken() throws -> JiraTokenSet?
+    func validToken() async throws -> JiraTokenSet?
     func disconnect() throws
 }
 

@@ -369,7 +369,7 @@ struct BacklogView: View {
 
     private var backlogList: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
                 ForEach(sprintGroups) { group in
                     BacklogSprintDropSlot(beforeGroupID: group.id, onMoveSprint: moveSprint)
                     backlogGroupSection(group)

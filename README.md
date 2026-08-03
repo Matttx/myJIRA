@@ -29,9 +29,31 @@ Callback URL: myjira://oauth/callback
 Scopes: read:jira-user read:jira-work write:jira-work offline_access
 ```
 
-Then open the app Settings and fill the Client ID and Client Secret.
+Enable sharing for the integration in the Atlassian Developer Console so other
+Atlassian accounts can authorize the app.
+
+Copy the local build configuration template and fill in the shared OAuth app credentials:
+
+```bash
+cp Secrets.xcconfig.example Secrets.xcconfig
+```
+
+`Secrets.xcconfig` is ignored by Git. The credentials are embedded in the built app,
+so users only need to click **Se connecter avec Atlassian** and authorize their own account.
 
 After OAuth succeeds, the app currently syncs accessible Jira workspaces and their projects into the local GRDB cache.
+
+## Atlassian personal data reporting
+
+myJIRA reports locally stored Atlassian account references through the Jira
+Personal Data Reporting API. Reporting runs when the app is active and an
+account is due, in batches of at most 90 accounts. The default cycle is seven
+days, or the period returned by Atlassian.
+
+When Atlassian returns `closed` or `updated`, myJIRA removes that account's
+stored profile fields (display names and account IDs) from issues, comments,
+and changelog entries. Disconnecting Jira removes the local reporting index
+along with the synchronized Jira data.
 
 ## Run
 

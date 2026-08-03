@@ -13,6 +13,7 @@ struct IssueComment: Hashable, Sendable, Codable {
 struct IssueChange: Hashable, Sendable, Codable {
     var id: String
     var authorName: String?
+    var authorAccountID: String?
     var createdAt: Date
     var fieldName: String
     var fromValue: String?
@@ -32,6 +33,7 @@ struct Issue: Identifiable, Hashable, Sendable {
     var issueTypeName: String?
     var priorityName: String?
     var reporterName: String?
+    var reporterAccountID: String?
     var labels: [String]
     var storyPointsFieldID: String?
     var storyPoints: Double?
@@ -43,6 +45,7 @@ struct Issue: Identifiable, Hashable, Sendable {
     var isSubtask: Bool
     var subtaskIDs: [String]
     var assigneeName: String?
+    var assigneeAccountID: String?
     var createdAt: Date?
     var updatedAt: Date
 
@@ -59,6 +62,7 @@ struct Issue: Identifiable, Hashable, Sendable {
         issueTypeName: String? = nil,
         priorityName: String? = nil,
         reporterName: String? = nil,
+        reporterAccountID: String? = nil,
         labels: [String] = [],
         storyPointsFieldID: String? = nil,
         storyPoints: Double? = nil,
@@ -70,6 +74,7 @@ struct Issue: Identifiable, Hashable, Sendable {
         isSubtask: Bool = false,
         subtaskIDs: [String] = [],
         assigneeName: String?,
+        assigneeAccountID: String? = nil,
         createdAt: Date? = nil,
         updatedAt: Date
     ) {
@@ -85,6 +90,7 @@ struct Issue: Identifiable, Hashable, Sendable {
         self.issueTypeName = issueTypeName
         self.priorityName = priorityName
         self.reporterName = reporterName
+        self.reporterAccountID = reporterAccountID
         self.labels = labels
         self.storyPointsFieldID = storyPointsFieldID
         self.storyPoints = storyPoints
@@ -96,7 +102,29 @@ struct Issue: Identifiable, Hashable, Sendable {
         self.isSubtask = isSubtask
         self.subtaskIDs = subtaskIDs
         self.assigneeName = assigneeName
+        self.assigneeAccountID = assigneeAccountID
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+
+    var personalDataAccountIDs: Set<String> {
+        var accountIDs = Set<String>()
+
+        [reporterAccountID, assigneeAccountID]
+            .compactMap { $0 }
+            .filter { !$0.isEmpty && $0 != "unknown" }
+            .forEach { accountIDs.insert($0) }
+
+        comments
+            .compactMap(\.authorAccountID)
+            .filter { !$0.isEmpty && $0 != "unknown" }
+            .forEach { accountIDs.insert($0) }
+
+        changes
+            .compactMap(\.authorAccountID)
+            .filter { !$0.isEmpty && $0 != "unknown" }
+            .forEach { accountIDs.insert($0) }
+
+        return accountIDs
     }
 }

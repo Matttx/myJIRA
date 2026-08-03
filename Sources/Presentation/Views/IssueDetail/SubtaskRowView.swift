@@ -1,3 +1,4 @@
+@preconcurrency import AppKit
 import SwiftUI
 
 struct SubtaskRowView: View {
@@ -34,6 +35,12 @@ struct SubtaskRowView: View {
             Label("Edit", systemImage: "square.and.pencil")
         }
 
+        Button {
+            copyIssueKey()
+        } label: {
+            Label("Copy ticket ID", systemImage: "doc.on.doc")
+        }
+
         Divider()
 
         Button(role: .destructive) {
@@ -41,6 +48,11 @@ struct SubtaskRowView: View {
         } label: {
             Label("Delete", systemImage: "trash")
         }
+    }
+
+    private func copyIssueKey() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(subtask.key, forType: .string)
     }
 
     private var rowContent: some View {

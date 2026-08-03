@@ -14,7 +14,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     }
 
     func projects(for resource: JiraAccessibleResource) async throws -> [Project] {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
 
@@ -51,7 +51,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     }
 
     func issues(for project: Project) async throws -> [Issue] {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
 
@@ -100,6 +100,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
                 issueTypeName: issue.fields.issueType?.name,
                 priorityName: issue.fields.priority?.name,
                 reporterName: issue.fields.reporter?.displayName,
+                reporterAccountID: issue.fields.reporter?.accountId,
                 labels: issue.fields.labels,
                 storyPointsFieldID: issue.fields.storyPointsFieldID ?? storyPointsFieldIDs.first,
                 storyPoints: issue.fields.storyPoints,
@@ -111,6 +112,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
                 isSubtask: issue.fields.issueType?.subtask ?? (issue.fields.parent != nil),
                 subtaskIDs: issue.fields.subtasks.map { "\(project.workspaceID):\($0.id)" },
                 assigneeName: issue.fields.assignee?.displayName,
+                assigneeAccountID: issue.fields.assignee?.accountId,
                 createdAt: issue.fields.created,
                 updatedAt: issue.fields.updated
             )
@@ -139,7 +141,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     }
 
     func issueTypes(for project: Project) async throws -> [IssueTypeMetadata] {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
 
@@ -176,7 +178,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     }
 
     func creationMetadata(for project: Project, issueTypeID: IssueTypeMetadata.ID) async throws -> IssueCreationMetadata {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
 
@@ -211,8 +213,11 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     }
 
     func createIssue(in project: Project, draft: IssueCreationDraft) async throws -> CreatedIssue {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
+        }
+        guard token.grants(anyOf: ["write:jira-work", "write:issue:jira"]) else {
+            throw AuthError.missingRequiredScope
         }
 
         var components = URLComponents()
@@ -229,6 +234,16 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
             "issuetype": ["id": draft.issueTypeID],
             "summary": draft.summary.trimmingCharacters(in: .whitespacesAndNewlines)
         ]
+
+        if let targetSprintID = draft.targetSprintID {
+            guard let sprintFieldID = try await sprintFieldID(
+                accessToken: token.accessToken,
+                cloudID: project.workspaceID
+            ) else {
+                throw AuthError.missingRequiredScope
+            }
+            fields[sprintFieldID] = targetSprintID
+        }
 
         if let parentIssueKey = draft.parentIssueKey {
             fields["parent"] = ["key": parentIssueKey]
@@ -273,20 +288,11 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
         }
 
         let createdIssue = try JSONDecoder().decode(JiraCreatedIssueDTO.self, from: data)
-        if let targetSprintID = draft.targetSprintID {
-            try await moveIssue(
-                issueKey: createdIssue.key,
-                toSprintID: targetSprintID,
-                cloudID: project.workspaceID,
-                accessToken: token.accessToken
-            )
-        }
-
         return CreatedIssue(id: "\(project.workspaceID):\(createdIssue.id)", key: createdIssue.key)
     }
 
     func currentUser(cloudID: String) async throws -> JiraUser {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
 
@@ -318,7 +324,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     }
 
     func assignableUsers(for project: Project) async throws -> [JiraUser] {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
 
@@ -372,7 +378,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     }
 
     private func updateIssueAssignee(issue: Issue, accountID: String?) async throws {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
         guard let cloudID = cloudID(from: issue) else {
@@ -408,7 +414,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     }
 
     func changelog(for issue: Issue) async throws -> [IssueChange] {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
         guard let cloudID = cloudID(from: issue) else {
@@ -423,7 +429,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     }
 
     func addComment(issue: Issue, bodyText: String, replyTo parentComment: IssueComment?) async throws -> IssueComment {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
         guard let cloudID = cloudID(from: issue) else {
@@ -482,7 +488,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     }
 
     func deleteComment(issue: Issue, comment: IssueComment) async throws {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
         guard let cloudID = cloudID(from: issue) else {
@@ -515,7 +521,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     }
 
     func deleteIssue(_ issue: Issue, deleteSubtasks: Bool) async throws {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
         guard let cloudID = cloudID(from: issue) else {
@@ -554,7 +560,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
 
     func transition(issue: Issue, toStatus status: String) async throws {
         guard issue.status != status else { return }
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
         guard let cloudID = cloudID(from: issue) else {
@@ -587,7 +593,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     }
 
     func updateSprint(issue: Issue, sprintName: String?) async throws -> IssueSprintValue {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
         guard let cloudID = cloudID(from: issue) else {
@@ -612,7 +618,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     }
 
     func updateStoryPoints(issue: Issue, storyPoints: Double?) async throws {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
         guard let cloudID = cloudID(from: issue) else {
@@ -644,7 +650,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     }
 
     func updateSummary(issue: Issue, summary: String) async throws {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
         guard let cloudID = cloudID(from: issue) else {
@@ -666,7 +672,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
     }
 
     func updateDescription(issue: Issue, descriptionText: String?) async throws {
-        guard let token = try authService.currentToken() else {
+        guard let token = try await authService.validToken() else {
             throw AuthError.invalidConfiguration
         }
         guard let cloudID = cloudID(from: issue) else {
@@ -1773,6 +1779,7 @@ private struct JiraChangelogHistoryDTO: Decodable {
             IssueChange(
                 id: "\(id):\(index)",
                 authorName: author?.displayName,
+                authorAccountID: author?.accountId,
                 createdAt: created,
                 fieldName: item.field,
                 fromValue: item.fromString,

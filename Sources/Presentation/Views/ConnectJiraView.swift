@@ -1,12 +1,6 @@
 import SwiftUI
 
 struct ConnectJiraView: View {
-    @Environment(AppContainer.self) private var container
-    @AppStorage("jira.clientID") private var clientID = ""
-    @AppStorage("jira.redirectURI") private var redirectURI = "myjira://oauth/callback"
-
-    @State private var clientSecret = ""
-
     let isConnecting: Bool
     let onConnect: (JiraOAuthConfiguration) -> Void
 
@@ -28,21 +22,6 @@ struct ConnectJiraView: View {
                 }
 
                 VStack(spacing: 16) {
-                    OAuthField(title: "Client ID") {
-                        TextField("Atlassian OAuth client ID", text: $clientID)
-                            .textContentType(.username)
-                    }
-
-                    OAuthField(title: "Client Secret") {
-                        SecureField("Atlassian OAuth client secret", text: $clientSecret)
-                            .textContentType(.password)
-                    }
-
-                    OAuthField(title: "Redirect URI") {
-                        TextField("myjira://oauth/callback", text: $redirectURI)
-                            .textContentType(.URL)
-                    }
-
                     Button {
                         connect()
                     } label: {
@@ -52,58 +31,28 @@ struct ConnectJiraView: View {
                                     .controlSize(.small)
                                     .tint(.foreground)
                             }
-                            Text("Connect Jira")
+                            Text("Se connecter avec Atlassian")
                         }
                     }
                     .buttonStyle(JiraPrimaryButtonStyle())
                     .keyboardShortcut(.defaultAction)
-                    .disabled(isConnecting || clientID.isEmpty || clientSecret.isEmpty || URL(string: redirectURI) == nil)
+                    .disabled(isConnecting || JiraOAuthConfiguration.bundled == nil)
+
+                    if JiraOAuthConfiguration.bundled == nil {
+                        Text("La configuration OAuth Atlassian est absente de cette version de l’app.")
+                            .font(.paragraphS)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
                 }
                 .frame(width: 430)
             }
             .frame(width: 520)
         }
-        .task {
-            loadStoredSecret()
-        }
     }
 
     private func connect() {
-        guard let redirectURL = URL(string: redirectURI) else { return }
-
-        onConnect(JiraOAuthConfiguration(
-            clientID: clientID,
-            clientSecret: clientSecret,
-            redirectURI: redirectURL,
-            scopes: JiraOAuthScopes.defaultScopes
-        ))
-    }
-
-    private func loadStoredSecret() {
-        guard clientSecret.isEmpty else { return }
-
-        do {
-            if let data = try container.secretStore.read(account: "jira.oauth.clientSecret"),
-               let secret = String(data: data, encoding: .utf8) {
-                clientSecret = secret
-            }
-        } catch {
-            // The main connect action will surface actionable auth errors.
-        }
-    }
-}
-
-private struct OAuthField<Field: View>: View {
-    let title: String
-    @ViewBuilder var field: Field
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text(title)
-                .font(.labelS)
-                .foregroundStyle(.secondary)
-            field
-                .jiraCapsuleFieldStyle()
-        }
+        guard let configuration = JiraOAuthConfiguration.bundled else { return }
+        onConnect(configuration)
     }
 }

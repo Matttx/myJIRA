@@ -8,7 +8,7 @@ protocol IssueRepository: Sendable {
     func deleteIssue(issueID: Issue.ID) async throws
     func replaceIssues(projectID: Project.ID, issues: [Issue]) async throws
     func updateStatus(issueID: Issue.ID, status: String) async throws
-    func updateAssignee(issueID: Issue.ID, assigneeName: String?) async throws
+    func updateAssignee(issueID: Issue.ID, assigneeName: String?, assigneeAccountID: String?) async throws
     func updateSprint(issueID: Issue.ID, sprintID: Int?, sprintName: String?, sprintState: String?) async throws
     func updateStoryPoints(issueID: Issue.ID, storyPoints: Double?) async throws
     func updateSummary(issueID: Issue.ID, summary: String) async throws

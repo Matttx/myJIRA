@@ -4,6 +4,8 @@ final class AtlassianAuthService: AuthService, @unchecked Sendable {
     private let secretStore: SecretStore
     private let urlSession: URLSession
     private let tokenAccount = "jira.oauth.tokens"
+    private let refreshLock = NSLock()
+    private var activeRefreshTask: Task<JiraTokenSet, Error>?
 
     init(secretStore: SecretStore, urlSession: URLSession = .shared) {
         self.secretStore = secretStore
@@ -48,6 +50,37 @@ final class AtlassianAuthService: AuthService, @unchecked Sendable {
         }
 
         return try JSONDecoder().decode(JiraTokenSet.self, from: data)
+    }
+
+    func validToken() async throws -> JiraTokenSet? {
+        guard let tokenSet = try currentToken() else { return nil }
+        guard tokenSet.expiresAt <= Date.now.addingTimeInterval(60) else { return tokenSet }
+        guard let refreshToken = tokenSet.refreshToken,
+              let configuration = JiraOAuthConfiguration.bundled
+        else {
+            return nil
+        }
+
+        let task = refreshLock.withLock { () -> Task<JiraTokenSet, Error> in
+            if let activeRefreshTask {
+                return activeRefreshTask
+            }
+
+            let task = Task {
+                try await self.refreshToken(refreshToken, configuration: configuration)
+            }
+            activeRefreshTask = task
+            return task
+        }
+
+        do {
+            let refreshedToken = try await task.value
+            refreshLock.withLock { activeRefreshTask = nil }
+            return refreshedToken
+        } catch {
+            refreshLock.withLock { activeRefreshTask = nil }
+            throw error
+        }
     }
 
     func disconnect() throws {
@@ -115,6 +148,41 @@ final class AtlassianAuthService: AuthService, @unchecked Sendable {
         )
     }
 
+    private func refreshToken(
+        _ refreshToken: String,
+        configuration: JiraOAuthConfiguration
+    ) async throws -> JiraTokenSet {
+        var request = URLRequest(url: URL(string: "https://auth.atlassian.com/oauth/token")!)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(RefreshTokenRequest(
+            grantType: "refresh_token",
+            clientID: configuration.clientID,
+            clientSecret: configuration.clientSecret,
+            refreshToken: refreshToken
+        ))
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidServerResponse
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            let message = String(data: data, encoding: .utf8) ?? "Atlassian token refresh failed."
+            throw AuthError.failedTokenExchange(message)
+        }
+
+        let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
+        let refreshedToken = JiraTokenSet(
+            accessToken: tokenResponse.accessToken,
+            refreshToken: tokenResponse.refreshToken ?? refreshToken,
+            expiresAt: Date.now.addingTimeInterval(TimeInterval(tokenResponse.expiresIn)),
+            scope: tokenResponse.scope
+        )
+        try saveToken(refreshedToken)
+        return refreshedToken
+    }
+
     private func accessibleResources(accessToken: String) async throws -> [JiraAccessibleResource] {
         var request = URLRequest(url: URL(string: "https://api.atlassian.com/oauth/token/accessible-resources")!)
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
@@ -166,5 +234,19 @@ private struct TokenResponse: Decodable {
         case refreshToken = "refresh_token"
         case expiresIn = "expires_in"
         case scope
+    }
+}
+
+private struct RefreshTokenRequest: Encodable {
+    var grantType: String
+    var clientID: String
+    var clientSecret: String
+    var refreshToken: String
+
+    enum CodingKeys: String, CodingKey {
+        case grantType = "grant_type"
+        case clientID = "client_id"
+        case clientSecret = "client_secret"
+        case refreshToken = "refresh_token"
     }
 }

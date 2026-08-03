@@ -115,36 +115,51 @@ final class IssueBoardUseCase: @unchecked Sendable {
 
     func commitAssignToCurrentUser(issue: Issue) async throws -> Issue {
         let user = try await jiraDataService.assignIssueToCurrentUser(issue: issue)
-        try await issueRepository.updateAssignee(issueID: issue.id, assigneeName: user.displayName)
+        try await issueRepository.updateAssignee(
+            issueID: issue.id,
+            assigneeName: user.displayName,
+            assigneeAccountID: user.accountID
+        )
 
         var updatedIssue = issue
         updatedIssue.assigneeName = user.displayName
+        updatedIssue.assigneeAccountID = user.accountID
         updatedIssue.updatedAt = Date()
         return updatedIssue
     }
 
     func commitAssign(issue: Issue, to user: JiraUser) async throws -> Issue {
         try await jiraDataService.assignIssue(issue: issue, to: user)
-        try await issueRepository.updateAssignee(issueID: issue.id, assigneeName: user.displayName)
+        try await issueRepository.updateAssignee(
+            issueID: issue.id,
+            assigneeName: user.displayName,
+            assigneeAccountID: user.accountID
+        )
 
         var updatedIssue = issue
         updatedIssue.assigneeName = user.displayName
+        updatedIssue.assigneeAccountID = user.accountID
         updatedIssue.updatedAt = Date()
         return updatedIssue
     }
 
     func commitUnassign(issue: Issue) async throws -> Issue {
         try await jiraDataService.unassignIssue(issue: issue)
-        try await issueRepository.updateAssignee(issueID: issue.id, assigneeName: nil)
+        try await issueRepository.updateAssignee(issueID: issue.id, assigneeName: nil, assigneeAccountID: nil)
 
         var updatedIssue = issue
         updatedIssue.assigneeName = nil
+        updatedIssue.assigneeAccountID = nil
         updatedIssue.updatedAt = Date()
         return updatedIssue
     }
 
     func rollbackAssignee(issue: Issue) async {
-        try? await issueRepository.updateAssignee(issueID: issue.id, assigneeName: issue.assigneeName)
+        try? await issueRepository.updateAssignee(
+            issueID: issue.id,
+            assigneeName: issue.assigneeName,
+            assigneeAccountID: issue.assigneeAccountID
+        )
     }
 
     func commitDeleteIssue(_ issue: Issue, deleteSubtasks: Bool) async throws {
