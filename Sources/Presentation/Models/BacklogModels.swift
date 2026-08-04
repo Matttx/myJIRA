@@ -105,3 +105,36 @@ enum SprintFilter: Hashable, Identifiable, Sendable {
         }
     }
 }
+
+struct IssueFilterSelection: Equatable {
+    var assignees: Set<String> = []
+    var statuses: Set<String> = []
+    var issueTypes: Set<String> = []
+    var priorities: Set<String> = []
+    var labels: Set<String> = []
+
+    static let unassignedID = "__unassigned__"
+
+    var activeFilterCount: Int {
+        [assignees, statuses, issueTypes, priorities, labels]
+            .filter { !$0.isEmpty }
+            .count
+    }
+
+    var isEmpty: Bool { activeFilterCount == 0 }
+
+    mutating func removeAll() {
+        self = IssueFilterSelection()
+    }
+
+    func matches(_ issue: Issue) -> Bool {
+        let assigneeID = issue.assigneeAccountID ?? issue.assigneeName ?? Self.unassignedID
+        let matchesAssignee = assignees.isEmpty || assignees.contains(assigneeID)
+        let matchesStatus = statuses.isEmpty || statuses.contains(issue.status)
+        let matchesType = issueTypes.isEmpty || issue.issueTypeName.map(issueTypes.contains) == true
+        let matchesPriority = priorities.isEmpty || issue.priorityName.map(priorities.contains) == true
+        let matchesLabels = labels.isEmpty || !labels.isDisjoint(with: issue.labels)
+
+        return matchesAssignee && matchesStatus && matchesType && matchesPriority && matchesLabels
+    }
+}

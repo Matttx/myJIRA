@@ -58,6 +58,7 @@ struct IssueDetailView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
+                .scrollClipDisabled()
                 .onChange(of: issue.id) { _, _ in
                     selectedPage = .subtasks
                     replyingToComment = nil
@@ -216,8 +217,7 @@ struct IssueDetailView: View {
                 .font(.paragraphM)
                 .foregroundStyle(.secondary)
                 .frame(width: 30, height: 28)
-                .background(JiraDesign.surface)
-                .clipShape(.capsule)
+                .jiraGlass(shape: .capsule, interactive: true)
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
@@ -510,8 +510,7 @@ struct IssueDetailView: View {
             .foregroundStyle(.secondary)
             .padding(.horizontal, 9)
             .padding(.vertical, 4)
-            .background(JiraDesign.surface)
-            .clipShape(.capsule)
+            .jiraGlass(shape: .capsule)
     }
 
     private func emptyText(_ text: String) -> some View {

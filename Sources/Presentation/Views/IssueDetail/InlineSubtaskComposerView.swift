@@ -38,8 +38,7 @@ struct InlineSubtaskComposerView: View {
                 Image(systemName: "plus")
                     .font(.paragraphS)
                     .frame(width: 30, height: 30)
-                    .background(JiraDesign.surface)
-                    .clipShape(Circle())
+                    .jiraGlass(shape: .circle, interactive: true)
 
                 Text("Create subtask")
                     .font(.paragraphM)
@@ -49,8 +48,7 @@ struct InlineSubtaskComposerView: View {
             .foregroundStyle(.secondary)
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
-            .background(JiraDesign.surface)
-            .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
+            .jiraGlass(shape: .roundedRectangle(JiraDesign.rowRadius), interactive: true)
         }
         .buttonStyle(.plain)
     }
@@ -74,8 +72,7 @@ struct InlineSubtaskComposerView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(JiraDesign.surface)
-        .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
+        .jiraGlass(shape: .roundedRectangle(JiraDesign.rowRadius), interactive: true)
     }
 
     private var issueTypePicker: some View {
@@ -110,8 +107,7 @@ struct InlineSubtaskComposerView: View {
                     .font(.paragraphS)
                     .foregroundStyle(.secondary)
                     .frame(width: 30, height: 30)
-                    .background(JiraDesign.surface)
-                    .clipShape(Circle())
+                    .jiraGlass(shape: .circle, interactive: true)
                     .overlay {
                         Circle()
                             .stroke(JiraDesign.hairline, lineWidth: 1)
@@ -136,9 +132,9 @@ struct InlineSubtaskComposerView: View {
         }
         .buttonStyle(.plain)
         .frame(width: 28, height: 28)
-        .background(canCommit ? JiraDesign.accent : JiraDesign.surface)
+        .background(canCommit ? JiraDesign.accent : Color.clear)
+        .jiraGlass(shape: .capsule, interactive: true)
         .foregroundStyle(canCommit ? JiraDesign.foreground : .secondary)
-        .clipShape(.capsule)
         .disabled(!canCommit || isCreating)
         .help("Create")
     }
@@ -152,8 +148,7 @@ struct InlineSubtaskComposerView: View {
         }
         .buttonStyle(.plain)
         .frame(width: 28, height: 28)
-        .background(JiraDesign.surface)
-        .clipShape(.capsule)
+        .jiraGlass(shape: .capsule, interactive: true)
         .help("Cancel")
     }
 

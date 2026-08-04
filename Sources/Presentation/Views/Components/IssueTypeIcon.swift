@@ -8,8 +8,7 @@ struct IssueTypeIcon: View {
             .font(.paragraphS)
             .foregroundStyle(.secondary)
             .frame(width: 30, height: 30)
-            .background(JiraDesign.surface)
-            .clipShape(Circle())
+            .jiraGlass(shape: .circle)
             .overlay {
                 Circle()
                     .stroke(JiraDesign.hairline, lineWidth: 1)

@@ -68,6 +68,7 @@ struct SettingsView: View {
             }
             .padding(28)
         }
+        .scrollClipDisabled()
         .frame(width: 520, height: 420)
         .task {
             loadConnectionState()

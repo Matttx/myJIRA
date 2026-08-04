@@ -37,13 +37,17 @@ struct KanbanIssueCard: View {
         }
         .foregroundStyle(isSelected ? Color.foreground : Color.primary)
         .padding(12)
-        .background(isSelected ? JiraDesign.accent : JiraDesign.surface)
         .overlay(alignment: .leading) {
             RoundedRectangle(cornerRadius: 2, style: .continuous)
                 .fill(statusColor.accent.opacity(isSelected ? 0.9 : 0.7))
                 .frame(width: 3)
         }
         .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
+        .jiraGlass(
+            shape: .roundedRectangle(JiraDesign.rowRadius),
+            tint: isSelected ? Color.primary : nil,
+            interactive: true
+        )
         .contentShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
         .onHover { hovering in
             withAnimation(.easeOut(duration: 0.12)) {
@@ -70,8 +74,7 @@ struct KanbanIssueCard: View {
                     .lineLimit(1)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(footerBadgeBackground)
-                    .clipShape(.capsule)
+                    .jiraGlass(shape: .capsule, tint: isSelected ? Color.primary : nil)
             }
 
             Text(storyPointsText)
@@ -80,8 +83,7 @@ struct KanbanIssueCard: View {
                 .lineLimit(1)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background(footerBadgeBackground)
-                .clipShape(.capsule)
+                .jiraGlass(shape: .capsule, tint: isSelected ? Color.primary : nil)
             
             if issue.subtaskCount > 0 {
                 SubtaskCountBadge(count: issue.subtaskCount, isSelected: isSelected)
@@ -106,8 +108,7 @@ struct KanbanIssueCard: View {
                 .font(.paragraphS)
                 .foregroundStyle(secondaryForeground)
                 .frame(width: 26, height: 24)
-                .background(footerBadgeBackground)
-                .clipShape(.capsule)
+                .jiraGlass(shape: .capsule, tint: isSelected ? Color.primary : nil, interactive: true)
         }
         .buttonStyle(.plain)
         .help("Issue actions")
@@ -149,10 +150,6 @@ struct KanbanIssueCard: View {
 
     private var secondaryForeground: Color {
         isSelected ? Color.foreground.opacity(0.72) : .secondary
-    }
-
-    private var footerBadgeBackground: Color {
-        isSelected ? Color.foreground.opacity(0.12) : JiraDesign.surface
     }
 
     private var storyPointsText: String {

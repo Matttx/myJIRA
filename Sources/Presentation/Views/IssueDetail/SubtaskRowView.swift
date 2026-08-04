@@ -71,8 +71,7 @@ struct SubtaskRowView: View {
         .foregroundStyle(Color.primary)
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(JiraDesign.surface)
-        .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
+        .jiraGlass(shape: .roundedRectangle(JiraDesign.rowRadius), interactive: true)
         .contentShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
     }
 
@@ -84,8 +83,7 @@ struct SubtaskRowView: View {
                 .font(.paragraphS)
                 .foregroundStyle(.secondary)
                 .frame(width: 26, height: 24)
-                .background(JiraDesign.surface)
-                .clipShape(.capsule)
+                .jiraGlass(shape: .capsule, interactive: true)
         }
         .buttonStyle(.plain)
         .help("Subtask actions")
@@ -120,8 +118,7 @@ struct SubtaskRowView: View {
                 .font(.paragraphS)
                 .foregroundStyle(.secondary)
                 .frame(width: 30, height: 30)
-                .background(JiraDesign.surface)
-                .clipShape(Circle())
+                .jiraGlass(shape: .circle, interactive: true)
                 .overlay {
                     Circle()
                         .stroke(JiraDesign.hairline, lineWidth: 1)

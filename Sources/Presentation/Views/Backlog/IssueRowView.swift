@@ -32,8 +32,11 @@ struct IssueRowView: View {
         .foregroundStyle(isSelected ? Color.foreground : Color.primary)
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(isSelected ? JiraDesign.accent : JiraDesign.surface)
-        .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
+        .jiraGlass(
+            shape: .roundedRectangle(JiraDesign.rowRadius),
+            tint: isSelected ? Color.primary : nil,
+            interactive: true
+        )
         .contentShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
         .onHover { hovering in
             withAnimation(.bouncy(duration: 0.3)) {
@@ -106,8 +109,7 @@ struct IssueRowView: View {
                 .font(.paragraphS)
                 .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
                 .frame(width: 26, height: 24)
-                .background(isSelected ? Color.foreground.opacity(0.12) : JiraDesign.surface)
-                .clipShape(.capsule)
+                .jiraGlass(shape: .capsule, tint: isSelected ? Color.primary : nil, interactive: true)
         }
         .buttonStyle(.plain)
         .help("Issue actions")

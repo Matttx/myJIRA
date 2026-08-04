@@ -95,8 +95,7 @@ struct CreateIssueSheet: View {
                     Image(systemName: shouldAssignToMe ? "person.fill.checkmark" : "person")
                         .font(.paragraphS)
                         .frame(width: 30, height: 30)
-                        .background(JiraDesign.surface)
-                        .clipShape(Circle())
+                        .jiraGlass(shape: .circle, interactive: true)
                         .overlay {
                             Circle()
                                 .stroke(JiraDesign.hairline, lineWidth: 1)
@@ -111,8 +110,7 @@ struct CreateIssueSheet: View {
                 .scrollContentBackground(.hidden)
                 .padding(12)
                 .frame(height: 130)
-                .background(JiraDesign.surface)
-                .clipShape(RoundedRectangle(cornerRadius: JiraDesign.controlRadius, style: .continuous))
+                .jiraGlass(shape: .roundedRectangle(JiraDesign.controlRadius), interactive: true)
                 .overlay(alignment: .topLeading) {
                     if descriptionText.isEmpty {
                         Text("Description")
@@ -139,8 +137,7 @@ struct CreateIssueSheet: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
-        .background(JiraDesign.surface)
-        .clipShape(.capsule)
+        .jiraGlass(shape: .capsule, interactive: true)
         .help("Story points")
     }
 
@@ -171,8 +168,7 @@ struct CreateIssueSheet: View {
                 }
             }
             .padding(12)
-            .background(JiraDesign.surface)
-            .clipShape(RoundedRectangle(cornerRadius: JiraDesign.compactRadius, style: .continuous))
+            .jiraGlass(shape: .roundedRectangle(JiraDesign.compactRadius), interactive: true)
         }
     }
 

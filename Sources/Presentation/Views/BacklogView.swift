@@ -32,6 +32,8 @@ struct BacklogView: View {
     @State private var selectedFocus: BacklogFocus = .backlog
     @State private var selectedSprintFilter: SprintFilter = .all
     @State private var searchQuery = ""
+    @State private var issueFilters = IssueFilterSelection()
+    @State private var isFilterSheetPresented = false
     @State private var isCreateIssuePresented = false
     @State private var issueToDelete: Issue?
     @State private var collapsedGroupIDs: Set<String> = []
@@ -86,6 +88,7 @@ struct BacklogView: View {
             reconcileSprintOrder()
         }
         .onChange(of: projectID) {
+            issueFilters.removeAll()
             applySavedBacklogPreferences()
             reconcileSprintOrder()
         }
@@ -117,6 +120,17 @@ struct BacklogView: View {
                 onLoadMetadata: onLoadCreationMetadata,
                 onCreate: onCreateIssue
             )
+        }
+        .sheet(isPresented: $isFilterSheetPresented) {
+            IssueFilterSheet(
+                issues: browsableIssues,
+                currentUser: currentUser,
+                initialSelection: issueFilters
+            ) { selection in
+                withAnimation(.easeInOut(duration: 0.18)) {
+                    issueFilters = selection
+                }
+            }
         }
         .confirmationDialog(
             "Delete issue?",
@@ -173,13 +187,16 @@ struct BacklogView: View {
 
     private var filteredIssues: [Issue] {
         if hasSearchQuery {
-            return availableIssues.filter(matchesSearch)
+            return availableIssues.filter { issue in
+                matchesSearch(issue) && issueFilters.matches(issue)
+            }
         }
 
         let filter = effectiveSprintFilter
 
         return browsableIssues.filter { issue in
-            switch filter {
+            guard issueFilters.matches(issue) else { return false }
+            return switch filter {
             case .all:
                 true
             case .backlog:
@@ -322,6 +339,30 @@ struct BacklogView: View {
                         selectBestSearchMatch()
                     }
 
+                Button {
+                    isFilterSheetPresented = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "line.3.horizontal.decrease")
+                        Text("Filtrer")
+                        if issueFilters.activeFilterCount > 0 {
+                            Text("\(issueFilters.activeFilterCount)")
+                                .font(.labelS)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(JiraDesign.accent.opacity(0.2))
+                                .clipShape(.capsule)
+                        }
+                    }
+                    .font(.paragraphS)
+                    .foregroundStyle(issueFilters.isEmpty ? Color.primary : JiraDesign.accent)
+                    .padding(.horizontal, 11)
+                    .frame(height: 28)
+                    .jiraGlass(shape: .capsule, interactive: true)
+                }
+                .buttonStyle(.plain)
+                .help("Filtrer les tickets")
+
                 JiraInlineValuePickerRow("Sprint", selection: Binding(
                     get: { selectedSprintFilter },
                     set: { filter in
@@ -342,8 +383,7 @@ struct BacklogView: View {
                 }
                 .buttonStyle(.borderless)
                 .frame(width: 28, height: 28)
-                .background(JiraDesign.surface)
-                .clipShape(.capsule)
+                .jiraGlass(shape: .capsule, interactive: true)
                 .help("Create issue")
 
                 Button(action: onRefresh) {
@@ -357,8 +397,7 @@ struct BacklogView: View {
                 }
                 .buttonStyle(.borderless)
                 .frame(width: 28, height: 28)
-                .background(JiraDesign.surface)
-                .clipShape(.capsule)
+                .jiraGlass(shape: .capsule, interactive: true)
                 .help("Refresh")
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
@@ -386,6 +425,8 @@ struct BacklogView: View {
             .padding(.horizontal, 18)
             .padding(.bottom, 18)
         }
+        .scrollClipDisabled()
+        .padding(8)
     }
 
     @ViewBuilder
@@ -415,8 +456,10 @@ struct BacklogView: View {
         }
         .padding(.vertical, 9)
         .padding(.horizontal, targetedGroupID == group.id ? 8 : 0)
-        .background(targetedGroupID == group.id ? JiraDesign.surface : Color.clear)
-        .clipShape(RoundedRectangle(cornerRadius: JiraDesign.compactRadius, style: .continuous))
+        .background(
+            targetedGroupID == group.id ? JiraDesign.accent.opacity(0.08) : Color.clear,
+            in: RoundedRectangle(cornerRadius: JiraDesign.compactRadius, style: .continuous)
+        )
         .contentShape(Rectangle())
         .dropDestination(for: String.self) { payloads, _ in
             guard let payload = payloads.first,
@@ -469,8 +512,7 @@ struct BacklogView: View {
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 9)
                     .padding(.vertical, 4)
-                    .background(JiraDesign.surface)
-                    .clipShape(.capsule)
+                    .jiraGlass(shape: .capsule)
 
                 Spacer(minLength: 0)
 
@@ -577,9 +619,9 @@ struct BacklogView: View {
 
     private var emptyFilterState: some View {
         VStack(spacing: 10) {
-            Text(hasSearchQuery ? "No matching ticket" : "No issues")
+            Text(hasSearchQuery || !issueFilters.isEmpty ? "No matching ticket" : "No issues")
                 .font(.headingS)
-            Text(hasSearchQuery ? "Try another key or summary." : "Change the sprint filter to show matching tickets.")
+            Text(hasSearchQuery || !issueFilters.isEmpty ? "Try changing your search or filters." : "Change the sprint filter to show matching tickets.")
                 .font(.paragraphM)
                 .foregroundStyle(.secondary)
         }

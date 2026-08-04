@@ -15,7 +15,6 @@ struct SubtaskCountBadge: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .frame(height: 30)
-        .background(isSelected ? Color.foreground.opacity(0.12) : JiraDesign.surface)
-        .clipShape(.capsule)
+        .jiraGlass(shape: .capsule, tint: isSelected ? Color.primary : nil)
     }
 }

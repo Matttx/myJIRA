@@ -77,8 +77,7 @@ struct AssigneeAvatarButton: View {
                 .font(.paragraphS)
                 .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
                 .frame(width: 30, height: 30)
-                .background(isSelected ? Color.foreground.opacity(0.12) : JiraDesign.surface)
-                .clipShape(Circle())
+                .jiraGlass(shape: .circle, tint: isSelected ? Color.primary : nil, interactive: true)
                 .overlay {
                     Circle()
                         .stroke(isSelected ? Color.foreground.opacity(0.18) : JiraDesign.hairline, lineWidth: 1)

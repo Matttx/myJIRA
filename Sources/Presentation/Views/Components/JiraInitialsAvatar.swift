@@ -11,8 +11,7 @@ struct JiraInitialsAvatar: View {
             .font(.labelS)
             .foregroundStyle(isSelected ? Color.foreground : Color.primary)
             .frame(width: 30, height: 30)
-            .background(isSelected ? Color.foreground.opacity(0.12) : JiraDesign.surface.opacity(showsHoverName ? 0 : 1))
-            .clipShape(Circle())
+            .jiraGlass(shape: .circle, tint: isSelected ? Color.primary : nil, interactive: true)
             .overlay {
                 Circle()
                     .stroke(isSelected ? Color.foreground.opacity(0.18) : JiraDesign.hairline, lineWidth: 1)

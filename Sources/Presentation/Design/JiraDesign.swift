@@ -115,7 +115,7 @@ struct JiraInlineValuePickerRow<SelectionValue: Hashable, Content: View>: View {
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
         .background(backgroundStyle)
-        .clipShape(.capsule)
+        .jiraGlass(shape: .capsule, interactive: true)
         .overlay {
             Capsule()
                 .stroke(statusColor?.border ?? Color.clear, lineWidth: 1)
@@ -143,7 +143,7 @@ struct JiraInlineValuePickerRow<SelectionValue: Hashable, Content: View>: View {
             return statusColor.background
         }
 
-        return JiraDesign.surface
+        return Color.clear
     }
 }
 
@@ -161,8 +161,7 @@ struct JiraSecondaryButtonStyle: ButtonStyle {
             .frame(maxWidth: expandsToMaxWidth ? .infinity : nil)
             .padding(.vertical, 12)
             .padding(.horizontal, 18)
-            .background(JiraDesign.surface)
-            .clipShape(.capsule)
+            .jiraGlass(shape: .capsule, interactive: true)
             .contentShape(.capsule)
             .scaleEffect(configuration.isPressed ? 0.985 : 1)
             .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
@@ -176,8 +175,7 @@ struct JiraCapsuleFieldModifier: ViewModifier {
             .font(.paragraphM)
             .padding(.vertical, 10)
             .padding(.horizontal, 16)
-            .background(JiraDesign.surface)
-            .clipShape(.capsule)
+            .jiraGlass(shape: .capsule, interactive: true)
     }
 }
 
@@ -188,12 +186,75 @@ struct JiraPanelModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(padding)
-            .background(JiraDesign.surface)
-            .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+            .jiraGlass(shape: .roundedRectangle(radius))
+    }
+}
+
+enum JiraGlassShape {
+    case capsule
+    case circle
+    case roundedRectangle(CGFloat)
+}
+
+private struct JiraGlassModifier: ViewModifier {
+    let shape: JiraGlassShape
+    let tint: Color?
+    let interactive: Bool
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            let glass = Glass.regular
+                .tint(tint)
+                .interactive(interactive)
+
+            switch shape {
+            case .capsule:
+                content
+                    .clipShape(Capsule())
+                    .glassEffect(glass, in: Capsule())
+            case .circle:
+                content
+                    .clipShape(Circle())
+                    .glassEffect(glass, in: Circle())
+            case .roundedRectangle(let radius):
+                let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+                content
+                    .clipShape(shape)
+                    .glassEffect(glass, in: shape)
+            }
+        } else {
+            switch shape {
+            case .capsule:
+                legacyGlass(content, in: Capsule())
+            case .circle:
+                legacyGlass(content, in: Circle())
+            case .roundedRectangle(let radius):
+                legacyGlass(content, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+            }
+        }
+    }
+
+    private func legacyGlass<S: InsettableShape>(_ content: Content, in shape: S) -> some View {
+        content
+            .clipShape(shape)
+            .background(.ultraThinMaterial, in: shape)
+            .background(tint?.opacity(0.22) ?? Color.clear, in: shape)
+            .overlay {
+                shape.strokeBorder(Color.white.opacity(0.24), lineWidth: 0.7)
+            }
     }
 }
 
 extension View {
+    func jiraGlass(
+        shape: JiraGlassShape = .roundedRectangle(JiraDesign.compactRadius),
+        tint: Color? = nil,
+        interactive: Bool = false
+    ) -> some View {
+        modifier(JiraGlassModifier(shape: shape, tint: tint, interactive: interactive))
+    }
+
     func jiraCapsuleFieldStyle() -> some View {
         modifier(JiraCapsuleFieldModifier())
     }

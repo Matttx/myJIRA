@@ -72,8 +72,11 @@ private struct ProjectSidebarRow: View {
         .foregroundStyle(isSelected ? Color.foreground : Color.primary)
         .padding(.horizontal, 10)
         .padding(.vertical, 7)
-        .background(isSelected ? JiraDesign.accent : JiraDesign.surface)
-        .clipShape(RoundedRectangle(cornerRadius: JiraDesign.controlRadius, style: .continuous))
+        .jiraGlass(
+            shape: .roundedRectangle(JiraDesign.controlRadius),
+            tint: isSelected ? Color.primary : nil,
+            interactive: true
+        )
         .contentShape(RoundedRectangle(cornerRadius: JiraDesign.controlRadius, style: .continuous))
     }
 }

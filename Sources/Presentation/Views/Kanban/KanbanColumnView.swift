@@ -96,5 +96,6 @@ struct KanbanColumnView: View {
             }
         }
         .scrollIndicators(.never)
+        .scrollClipDisabled()
     }
 }

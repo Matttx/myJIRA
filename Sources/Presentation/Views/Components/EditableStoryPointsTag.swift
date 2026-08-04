@@ -39,8 +39,11 @@ struct EditableStoryPointsTag: View {
                         .lineLimit(1)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(isSelected ? Color.foreground.opacity(0.12) : JiraDesign.surface)
-                        .clipShape(.capsule)
+                        .jiraGlass(
+                            shape: .capsule,
+                            tint: isSelected ? Color.primary : nil,
+                            interactive: true
+                        )
                 }
                 .buttonStyle(.plain)
                 .help("Edit story points")

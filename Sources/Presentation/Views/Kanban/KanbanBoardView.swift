@@ -42,5 +42,6 @@ struct KanbanBoardView: View {
             .padding(.bottom, 18)
         }
         .scrollIndicators(.hidden)
+        .scrollClipDisabled()
     }
 }

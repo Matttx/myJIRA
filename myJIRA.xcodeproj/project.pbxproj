@@ -92,6 +92,7 @@
 		100000000000000000000053 /* PersonalDataReportingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000154 /* PersonalDataReportingService.swift */; };
 		100000000000000000000054 /* LocalPersonalDataRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000155 /* LocalPersonalDataRepository.swift */; };
 		100000000000000000000055 /* AtlassianPersonalDataReportingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000156 /* AtlassianPersonalDataReportingService.swift */; };
+		100000000000000000000056 /* IssueFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000157 /* IssueFilterSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -101,6 +102,7 @@
 		100000000000000000000154 /* PersonalDataReportingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalDataReportingService.swift; sourceTree = "<group>"; };
 		100000000000000000000155 /* LocalPersonalDataRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalPersonalDataRepository.swift; sourceTree = "<group>"; };
 		100000000000000000000156 /* AtlassianPersonalDataReportingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlassianPersonalDataReportingService.swift; sourceTree = "<group>"; };
+		100000000000000000000157 /* IssueFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueFilterSheet.swift; sourceTree = "<group>"; };
 		100000000000000000000100 /* myJIRA.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = myJIRA.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		100000000000000000000101 /* myJIRAApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = myJIRAApp.swift; sourceTree = "<group>"; };
 		100000000000000000000102 /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
@@ -422,6 +424,7 @@
 			children = (
 				100000000000000000000139 /* CreateIssueSheet.swift */,
 				10000000000000000000013B /* InlineIssueComposer.swift */,
+				100000000000000000000157 /* IssueFilterSheet.swift */,
 				10000000000000000000013A /* IssueRowView.swift */,
 			);
 			path = Backlog;
@@ -645,6 +648,7 @@
 				100000000000000000000019 /* SidebarView.swift in Sources */,
 				10000000000000000000001A /* BacklogView.swift in Sources */,
 				100000000000000000000039 /* CreateIssueSheet.swift in Sources */,
+				100000000000000000000056 /* IssueFilterSheet.swift in Sources */,
 				10000000000000000000003A /* IssueRowView.swift in Sources */,
 				10000000000000000000003B /* InlineIssueComposer.swift in Sources */,
 				10000000000000000000003C /* KanbanBoardView.swift in Sources */,

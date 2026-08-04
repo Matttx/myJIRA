@@ -38,8 +38,7 @@ struct CommentComposerView: View {
                 }
                 .padding(.vertical, 8)
                 .padding(.horizontal, 10)
-                .background(JiraDesign.surface)
-                .clipShape(RoundedRectangle(cornerRadius: JiraDesign.controlRadius, style: .continuous))
+                .jiraGlass(shape: .roundedRectangle(JiraDesign.controlRadius), interactive: true)
                 .overlay {
                     RoundedRectangle(cornerRadius: JiraDesign.controlRadius, style: .continuous)
                         .stroke(isFocused ? JiraDesign.accent.opacity(0.24) : JiraDesign.hairline, lineWidth: 1)
@@ -107,8 +106,7 @@ struct CommentComposerView: View {
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
-        .background(JiraDesign.surface)
-        .clipShape(RoundedRectangle(cornerRadius: JiraDesign.compactRadius, style: .continuous))
+        .jiraGlass(shape: .roundedRectangle(JiraDesign.compactRadius), interactive: true)
     }
 
     private func submit() {

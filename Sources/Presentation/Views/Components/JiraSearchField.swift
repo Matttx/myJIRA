@@ -27,7 +27,6 @@ struct JiraSearchField: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(JiraDesign.surface)
-        .clipShape(.capsule)
+        .jiraGlass(shape: .capsule, interactive: true)
     }
 }

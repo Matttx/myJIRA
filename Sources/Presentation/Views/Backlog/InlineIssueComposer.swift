@@ -49,8 +49,7 @@ struct InlineIssueComposer: View {
         .foregroundStyle(.secondary)
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(JiraDesign.surface)
-        .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
+        .jiraGlass(shape: .roundedRectangle(JiraDesign.rowRadius), interactive: true)
     }
 
     private var editingRow: some View {
@@ -80,8 +79,7 @@ struct InlineIssueComposer: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(JiraDesign.surface)
-        .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
+        .jiraGlass(shape: .roundedRectangle(JiraDesign.rowRadius), interactive: true)
     }
 
     private var issueTypePicker: some View {
@@ -119,8 +117,7 @@ struct InlineIssueComposer: View {
         }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .background(JiraDesign.surface)
-            .clipShape(.capsule)
+            .jiraGlass(shape: .capsule, interactive: true)
             .help("Story points")
     }
 
@@ -133,8 +130,7 @@ struct InlineIssueComposer: View {
             } else {
                 Image(systemName: "person")
                 .frame(width: 30, height: 30)
-                .background(JiraDesign.surface)
-                .clipShape(Circle())
+                .jiraGlass(shape: .circle, interactive: true)
                 .overlay {
                     Circle()
                         .stroke(Color.foreground.opacity(0.18), lineWidth: 1)
@@ -155,9 +151,9 @@ struct InlineIssueComposer: View {
         }
         .buttonStyle(.plain)
         .frame(width: 28, height: 28)
-        .background(canCommit ? JiraDesign.accent : JiraDesign.surface)
+        .background(canCommit ? JiraDesign.accent : Color.clear)
+        .jiraGlass(shape: .capsule, interactive: true)
         .foregroundStyle(canCommit ? JiraDesign.foreground : .secondary)
-        .clipShape(.capsule)
         .disabled(!canCommit)
         .help("Create")
     }
@@ -172,8 +168,7 @@ struct InlineIssueComposer: View {
         }
         .buttonStyle(.plain)
         .frame(width: 28, height: 28)
-        .background(JiraDesign.surface)
-        .clipShape(.capsule)
+        .jiraGlass(shape: .capsule, interactive: true)
         .help("Cancel")
     }
 
