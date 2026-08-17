@@ -3,6 +3,7 @@ import SwiftUI
 struct SubtaskCountBadge: View {
     let count: Int
     let isSelected: Bool
+    var usesTaskCardMaterial = false
 
     var body: some View {
         HStack(spacing: 4) {
@@ -11,10 +12,10 @@ struct SubtaskCountBadge: View {
             Text("\(count)")
                 .font(.labelS)
         }
-        .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
+        .foregroundStyle(isSelected ? Color.white : .secondary)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .frame(height: 30)
-        .jiraGlass(shape: .capsule, tint: isSelected ? Color.primary : nil)
+        .jiraControlSurface(shape: .capsule, usesTaskCardMaterial: usesTaskCardMaterial)
     }
 }

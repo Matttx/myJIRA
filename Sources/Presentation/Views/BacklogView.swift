@@ -11,6 +11,7 @@ struct BacklogView: View {
     let savedSprintOrder: [String]
     let savedCollapsedGroupIDs: Set<String>
     let savedSelectedSprintFilter: SprintFilter
+    let savedHiddenKanbanColumnTitles: Set<String>
     @Binding var selectedIssueID: Issue.ID?
     let isLoadingInitialData: Bool
     let isRefreshing: Bool
@@ -28,6 +29,7 @@ struct BacklogView: View {
     let onLoadIssueCreationOptions: () -> Void
     let onLoadCreationMetadata: (IssueTypeMetadata.ID) -> Void
     let onSaveDisplayPreferences: ([String], Set<String>, SprintFilter) -> Void
+    let onSaveHiddenKanbanColumns: (Set<String>) -> Void
     let onCreateIssue: (IssueCreationDraft) async -> Bool
     @State private var selectedFocus: BacklogFocus = .backlog
     @State private var selectedSprintFilter: SprintFilter = .all
@@ -39,6 +41,7 @@ struct BacklogView: View {
     @State private var collapsedGroupIDs: Set<String> = []
     @State private var sprintOrder: [String] = []
     @State private var targetedGroupID: String?
+    @State private var hiddenKanbanColumnTitles: Set<String> = []
 
     var body: some View {
         VStack(spacing: 16) {
@@ -68,6 +71,8 @@ struct BacklogView: View {
                 case .kanban:
                     KanbanBoardView(
                         columns: kanbanColumns,
+                        hiddenColumnTitles: hiddenKanbanColumnTitles,
+                        onChangeHiddenColumnTitles: setHiddenKanbanColumnTitles,
                         selectedIssueID: $selectedIssueID,
                         onMoveIssue: onMoveIssue,
                         onMoveColumn: onMoveColumn,
@@ -103,6 +108,9 @@ struct BacklogView: View {
         .onChange(of: savedSelectedSprintFilter) {
             applySavedBacklogPreferences()
             reconcileSprintOrder()
+        }
+        .onChange(of: savedHiddenKanbanColumnTitles) {
+            applySavedKanbanPreferences()
         }
         .onChange(of: availableSprintGroupIDs) {
             reconcileSprintOrder()
@@ -214,7 +222,6 @@ struct BacklogView: View {
     private var sprintFilterOptions: [SprintFilter] {
         let activeSprintNames = Set(browsableIssues.compactMap { issue -> String? in
             guard let sprintName = issue.trimmedSprintName else { return nil }
-            if issue.isFutureSprint { return nil }
             return sprintName
         })
 
@@ -294,8 +301,10 @@ struct BacklogView: View {
     }
 
     private var statusOptions: [String] {
-        Array(Set(availableIssues.map(\.status))).sorted {
-            $0.localizedStandardCompare($1) == .orderedAscending
+        let observedStatuses = availableIssues.map(\.status)
+        return (kanbanColumnOrder + observedStatuses).reduce(into: [String]()) { result, status in
+            guard !result.contains(status) else { return }
+            result.append(status)
         }
     }
 
@@ -408,10 +417,10 @@ struct BacklogView: View {
 
     private var backlogList: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
+            LazyVStack(alignment: .leading, spacing: 0) {
                 ForEach(sprintGroups) { group in
                     BacklogSprintDropSlot(beforeGroupID: group.id, onMoveSprint: moveSprint)
-                    backlogGroupSection(group)
+                    backlogGroupContent(group)
                 }
 
                 if !sprintGroups.isEmpty {
@@ -419,42 +428,56 @@ struct BacklogView: View {
                 }
 
                 if let backlogGroup {
-                    backlogGroupSection(backlogGroup)
+                    backlogGroupContent(backlogGroup)
                 }
             }
             .padding(.horizontal, 18)
             .padding(.bottom, 18)
         }
-        .scrollClipDisabled()
         .padding(8)
     }
 
     @ViewBuilder
-    private func backlogGroupSection(_ group: IssueGroup) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+    private func backlogGroupContent(_ group: IssueGroup) -> some View {
+        backlogGroupDropTarget(
             backlogGroupHeader(group)
+                .padding(.top, 9)
+                .padding(.bottom, 8),
+            group: group
+        )
 
-            if !collapsedGroupIDs.contains(group.id) {
-                VStack(spacing: 6) {
-                    ForEach(group.issues) { issue in
-                        backlogIssueRow(issue)
-                            .draggable(BacklogDragPayload.issue(issue.id))
-                    }
-
-                    InlineIssueComposer(
-                        issueTypes: issueTypes,
-                        currentUser: currentUser,
-                        defaultStatus: orderedStatusOptions.first,
-                        targetSprintID: group.sprintID,
-                        onLoadIssueTypes: onLoadIssueCreationOptions,
-                        onLoadMetadata: onLoadCreationMetadata,
-                        onCreate: onCreateIssue
-                    )
-                }
-                .transition(.opacity.combined(with: .move(edge: .top)))
+        if !collapsedGroupIDs.contains(group.id) {
+            ForEach(group.issues) { issue in
+                backlogGroupDropTarget(
+                    backlogIssueRow(issue)
+                        .draggable(BacklogDragPayload.issue(issue.id))
+                        .padding(.bottom, 6),
+                    group: group
+                )
             }
+
+            backlogGroupDropTarget(
+                InlineIssueComposer(
+                    issueTypes: issueTypes,
+                    currentUser: currentUser,
+                    defaultStatus: orderedStatusOptions.first,
+                    targetSprintID: group.sprintID,
+                    onLoadIssueTypes: onLoadIssueCreationOptions,
+                    onLoadMetadata: onLoadCreationMetadata,
+                    onCreate: onCreateIssue
+                )
+                .padding(.bottom, 9),
+                group: group
+            )
+                .transition(.opacity.combined(with: .move(edge: .top)))
         }
-        .padding(.vertical, 9)
+    }
+
+    private func backlogGroupDropTarget<Content: View>(
+        _ content: Content,
+        group: IssueGroup
+    ) -> some View {
+        content
         .padding(.horizontal, targetedGroupID == group.id ? 8 : 0)
         .background(
             targetedGroupID == group.id ? JiraDesign.accent.opacity(0.08) : Color.clear,
@@ -482,7 +505,6 @@ struct BacklogView: View {
                 }
             }
         }
-
     }
 
     @ViewBuilder
@@ -594,6 +616,18 @@ struct BacklogView: View {
         collapsedGroupIDs = savedCollapsedGroupIDs
         selectedSprintFilter = savedSelectedSprintFilter
         reconcileSelectedSprintFilter()
+        applySavedKanbanPreferences()
+    }
+
+    private func applySavedKanbanPreferences() {
+        hiddenKanbanColumnTitles = savedHiddenKanbanColumnTitles
+    }
+
+    private func setHiddenKanbanColumnTitles(_ titles: Set<String>) {
+        withAnimation(.easeInOut(duration: 0.18)) {
+            hiddenKanbanColumnTitles = titles
+        }
+        onSaveHiddenKanbanColumns(hiddenKanbanColumnTitles)
     }
 
     private func reconcileSprintOrder() {

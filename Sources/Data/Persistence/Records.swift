@@ -73,6 +73,14 @@ struct KanbanColumnOrderRecord: Codable, FetchableRecord, PersistableRecord {
     var position: Int
 }
 
+struct ProjectStatusRecord: Codable, FetchableRecord, PersistableRecord {
+    static let databaseTableName = "projectStatuses"
+
+    var projectID: String
+    var status: String
+    var position: Int
+}
+
 struct ProjectDisplayOrderRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "projectDisplayOrders"
 
@@ -101,6 +109,13 @@ struct BacklogSelectedSprintFilterRecord: Codable, FetchableRecord, PersistableR
 
     var projectID: String
     var filterID: String
+}
+
+struct HiddenKanbanColumnRecord: Codable, FetchableRecord, PersistableRecord {
+    static let databaseTableName = "hiddenKanbanColumns"
+
+    var projectID: String
+    var title: String
 }
 
 extension WorkspaceRecord {

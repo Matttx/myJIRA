@@ -105,4 +105,28 @@ final class LocalDisplayPreferencesRepository: DisplayPreferencesRepository, @un
             .upsert(db)
         }
     }
+
+    func hiddenKanbanColumnTitles(projectID: Project.ID) async throws -> Set<String> {
+        try await database.writer.read { db in
+            let titles = try HiddenKanbanColumnRecord
+                .filter(Column("projectID") == projectID)
+                .fetchAll(db)
+                .map(\.title)
+
+            return Set(titles)
+        }
+    }
+
+    func saveHiddenKanbanColumnTitles(projectID: Project.ID, titles: Set<String>) async throws {
+        try await database.writer.write { db in
+            try HiddenKanbanColumnRecord
+                .filter(Column("projectID") == projectID)
+                .deleteAll(db)
+
+            for title in titles {
+                try HiddenKanbanColumnRecord(projectID: projectID, title: title)
+                    .insert(db)
+            }
+        }
+    }
 }

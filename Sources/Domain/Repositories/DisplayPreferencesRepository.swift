@@ -9,4 +9,6 @@ protocol DisplayPreferencesRepository: Sendable {
     func saveCollapsedBacklogGroupIDs(projectID: Project.ID, groupIDs: Set<String>) async throws
     func selectedSprintFilter(projectID: Project.ID) async throws -> SprintFilter
     func saveSelectedSprintFilter(projectID: Project.ID, filter: SprintFilter) async throws
+    func hiddenKanbanColumnTitles(projectID: Project.ID) async throws -> Set<String>
+    func saveHiddenKanbanColumnTitles(projectID: Project.ID, titles: Set<String>) async throws
 }

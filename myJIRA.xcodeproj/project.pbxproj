@@ -52,6 +52,9 @@
 		10000000000000000000003F /* KanbanColumnDropSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000013F /* KanbanColumnDropSlot.swift */; };
 		100000000000000000000040 /* KanbanIssueCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000140 /* KanbanIssueCard.swift */; };
 		100000000000000000000041 /* KanbanColumnDragPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000141 /* KanbanColumnDragPayload.swift */; };
+		100000000000000000000059 /* KanbanColumnsMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000159 /* KanbanColumnsMenu.swift */; };
+		10000000000000000000005A /* IssueFetchLimitTitleMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000015A /* IssueFetchLimitTitleMenu.swift */; };
+		10000000000000000000005B /* IssueFetchLimitPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000015B /* IssueFetchLimitPopover.swift */; };
 		100000000000000000000042 /* CommentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000142 /* CommentRowView.swift */; };
 		100000000000000000000043 /* ChangeRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000143 /* ChangeRowView.swift */; };
 		100000000000000000000044 /* SubtaskRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000144 /* SubtaskRowView.swift */; };
@@ -93,6 +96,7 @@
 		100000000000000000000054 /* LocalPersonalDataRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000155 /* LocalPersonalDataRepository.swift */; };
 		100000000000000000000055 /* AtlassianPersonalDataReportingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000156 /* AtlassianPersonalDataReportingService.swift */; };
 		100000000000000000000056 /* IssueFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000157 /* IssueFilterSheet.swift */; };
+		100000000000000000000057 /* IssueFetchPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000158 /* IssueFetchPreferences.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -103,6 +107,7 @@
 		100000000000000000000155 /* LocalPersonalDataRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalPersonalDataRepository.swift; sourceTree = "<group>"; };
 		100000000000000000000156 /* AtlassianPersonalDataReportingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlassianPersonalDataReportingService.swift; sourceTree = "<group>"; };
 		100000000000000000000157 /* IssueFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueFilterSheet.swift; sourceTree = "<group>"; };
+		100000000000000000000158 /* IssueFetchPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueFetchPreferences.swift; sourceTree = "<group>"; };
 		100000000000000000000100 /* myJIRA.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = myJIRA.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		100000000000000000000101 /* myJIRAApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = myJIRAApp.swift; sourceTree = "<group>"; };
 		100000000000000000000102 /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
@@ -169,6 +174,9 @@
 		10000000000000000000013F /* KanbanColumnDropSlot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanColumnDropSlot.swift; sourceTree = "<group>"; };
 		100000000000000000000140 /* KanbanIssueCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanIssueCard.swift; sourceTree = "<group>"; };
 		100000000000000000000141 /* KanbanColumnDragPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanColumnDragPayload.swift; sourceTree = "<group>"; };
+		100000000000000000000159 /* KanbanColumnsMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanColumnsMenu.swift; sourceTree = "<group>"; };
+		10000000000000000000015A /* IssueFetchLimitTitleMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueFetchLimitTitleMenu.swift; sourceTree = "<group>"; };
+		10000000000000000000015B /* IssueFetchLimitPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueFetchLimitPopover.swift; sourceTree = "<group>"; };
 		100000000000000000000142 /* CommentRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentRowView.swift; sourceTree = "<group>"; };
 		100000000000000000000143 /* ChangeRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeRowView.swift; sourceTree = "<group>"; };
 		100000000000000000000144 /* SubtaskRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtaskRowView.swift; sourceTree = "<group>"; };
@@ -376,6 +384,7 @@
 			isa = PBXGroup;
 			children = (
 				100000000000000000000115 /* JiraCloudDataService.swift */,
+				100000000000000000000158 /* IssueFetchPreferences.swift */,
 			);
 			path = Jira;
 			sourceTree = "<group>";
@@ -414,6 +423,8 @@
 				100000000000000000000146 /* IssueTypeIcon.swift */,
 				100000000000000000000134 /* JiraInitialsAvatar.swift */,
 				100000000000000000000135 /* JiraSearchField.swift */,
+				10000000000000000000015A /* IssueFetchLimitTitleMenu.swift */,
+				10000000000000000000015B /* IssueFetchLimitPopover.swift */,
 				100000000000000000000136 /* SubtaskCountBadge.swift */,
 			);
 			path = Components;
@@ -437,6 +448,7 @@
 				100000000000000000000141 /* KanbanColumnDragPayload.swift */,
 				10000000000000000000013F /* KanbanColumnDropSlot.swift */,
 				10000000000000000000013D /* KanbanColumnView.swift */,
+				100000000000000000000159 /* KanbanColumnsMenu.swift */,
 				10000000000000000000013E /* KanbanDropSlot.swift */,
 				100000000000000000000140 /* KanbanIssueCard.swift */,
 			);
@@ -640,6 +652,8 @@
 				100000000000000000000024 /* JiraDesign.swift in Sources */,
 				100000000000000000000034 /* JiraInitialsAvatar.swift in Sources */,
 				100000000000000000000035 /* JiraSearchField.swift in Sources */,
+				10000000000000000000005A /* IssueFetchLimitTitleMenu.swift in Sources */,
+				10000000000000000000005B /* IssueFetchLimitPopover.swift in Sources */,
 				100000000000000000000046 /* IssueTypeIcon.swift in Sources */,
 				100000000000000000000036 /* SubtaskCountBadge.swift in Sources */,
 				100000000000000000000037 /* EditableStoryPointsTag.swift in Sources */,
@@ -649,6 +663,7 @@
 				10000000000000000000001A /* BacklogView.swift in Sources */,
 				100000000000000000000039 /* CreateIssueSheet.swift in Sources */,
 				100000000000000000000056 /* IssueFilterSheet.swift in Sources */,
+				100000000000000000000057 /* IssueFetchPreferences.swift in Sources */,
 				10000000000000000000003A /* IssueRowView.swift in Sources */,
 				10000000000000000000003B /* InlineIssueComposer.swift in Sources */,
 				10000000000000000000003C /* KanbanBoardView.swift in Sources */,
@@ -657,6 +672,7 @@
 				10000000000000000000003F /* KanbanColumnDropSlot.swift in Sources */,
 				100000000000000000000040 /* KanbanIssueCard.swift in Sources */,
 				100000000000000000000041 /* KanbanColumnDragPayload.swift in Sources */,
+				100000000000000000000059 /* KanbanColumnsMenu.swift in Sources */,
 				100000000000000000000021 /* ConnectJiraView.swift in Sources */,
 				10000000000000000000001B /* IssueDetailView.swift in Sources */,
 				100000000000000000000047 /* CommentComposerView.swift in Sources */,
@@ -827,6 +843,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = "";
+				ENABLE_DEBUG_DYLIB = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/App/Info.plist;

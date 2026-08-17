@@ -15,6 +15,7 @@ final class ProjectViewModel {
     var backlogSprintOrder: [String] = []
     var collapsedBacklogGroupIDs: Set<String> = []
     var selectedSprintFilter: SprintFilter = .all
+    var hiddenKanbanColumnTitles: Set<String> = []
     var isLoadingInitialData = false
     var isRefreshing = false
     var isLoadingIssueCreation = false
@@ -628,6 +629,23 @@ final class ProjectViewModel {
         }
     }
 
+    func saveHiddenKanbanColumnTitles(_ titles: Set<String>) {
+        hiddenKanbanColumnTitles = titles
+
+        Task {
+            do {
+                try await displayPreferencesRepository.saveHiddenKanbanColumnTitles(
+                    projectID: projectID,
+                    titles: titles
+                )
+            } catch {
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+
     private func apply(_ snapshot: ProjectIssuesSnapshot) {
         issues = snapshot.issues
         kanbanColumnOrder = snapshot.kanbanColumnOrder
@@ -648,6 +666,7 @@ final class ProjectViewModel {
             backlogSprintOrder = try await displayPreferencesRepository.backlogSprintOrder(projectID: projectID)
             collapsedBacklogGroupIDs = try await displayPreferencesRepository.collapsedBacklogGroupIDs(projectID: projectID)
             selectedSprintFilter = try await displayPreferencesRepository.selectedSprintFilter(projectID: projectID)
+            hiddenKanbanColumnTitles = try await displayPreferencesRepository.hiddenKanbanColumnTitles(projectID: projectID)
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(AppContainer.self) private var container
+    @AppStorage(IssueFetchPreferences.storageKey) private var issueFetchLimit = IssueFetchPreferences.defaultLimit
     @State private var isConnecting = false
     @State private var resources: [JiraAccessibleResource] = []
     @State private var message: String?
@@ -58,6 +59,22 @@ struct SettingsView: View {
                     .jiraPanel()
                 }
 
+                VStack(alignment: .leading, spacing: 12) {
+                    settingsLabel("Issues")
+
+                    Picker("Nombre d’issues à charger", selection: $issueFetchLimit) {
+                        ForEach(IssueFetchPreferences.availableLimits, id: \.self) { limit in
+                            Text("\(limit)").tag(limit)
+                        }
+                    }
+                    .pickerStyle(.menu)
+
+                    Text("Les issues les plus récemment mises à jour seront chargées et affichées (200 maximum).")
+                        .font(.paragraphS)
+                        .foregroundStyle(.secondary)
+                }
+                .jiraPanel()
+
                 if let message {
                     Text(message)
                         .font(.paragraphS)
@@ -72,6 +89,9 @@ struct SettingsView: View {
         .frame(width: 520, height: 420)
         .task {
             loadConnectionState()
+        }
+        .onChange(of: issueFetchLimit) {
+            NotificationCenter.default.post(name: .refreshRequested, object: nil)
         }
     }
 

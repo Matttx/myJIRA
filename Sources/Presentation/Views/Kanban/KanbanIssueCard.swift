@@ -43,10 +43,9 @@ struct KanbanIssueCard: View {
                 .frame(width: 3)
         }
         .clipShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
-        .jiraGlass(
-            shape: .roundedRectangle(JiraDesign.rowRadius),
-            tint: isSelected ? Color.primary : nil,
-            interactive: true
+        .background(
+            cardBackground,
+            in: RoundedRectangle(cornerRadius: JiraDesign.rowRadius)
         )
         .contentShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
         .onHover { hovering in
@@ -57,6 +56,10 @@ struct KanbanIssueCard: View {
         .contextMenu {
             actionItems
         }
+    }
+
+    private var cardBackground: Color {
+        isSelected ? .primary : Color(nsColor: .quaternarySystemFill)
     }
 
     private var footerRow: some View {
@@ -74,7 +77,7 @@ struct KanbanIssueCard: View {
                     .lineLimit(1)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .jiraGlass(shape: .capsule, tint: isSelected ? Color.primary : nil)
+                    .jiraTaskCardMaterial(shape: .capsule)
             }
 
             Text(storyPointsText)
@@ -83,15 +86,16 @@ struct KanbanIssueCard: View {
                 .lineLimit(1)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .jiraGlass(shape: .capsule, tint: isSelected ? Color.primary : nil)
+                .jiraTaskCardMaterial(shape: .capsule)
             
             if issue.subtaskCount > 0 {
-                SubtaskCountBadge(count: issue.subtaskCount, isSelected: isSelected)
+                SubtaskCountBadge(count: issue.subtaskCount, isSelected: isSelected, usesTaskCardMaterial: true)
             }
             
             AssigneeAvatarButton(
                 assigneeName: issue.assigneeName,
                 isSelected: isSelected,
+                usesTaskCardMaterial: true,
                 assignableUsers: assignableUsers,
                 onAssignToCurrentUser: onAssignToCurrentUser,
                 onUnassign: onUnassign,
@@ -108,7 +112,7 @@ struct KanbanIssueCard: View {
                 .font(.paragraphS)
                 .foregroundStyle(secondaryForeground)
                 .frame(width: 26, height: 24)
-                .jiraGlass(shape: .capsule, tint: isSelected ? Color.primary : nil, interactive: true)
+                .jiraTaskCardMaterial(shape: .capsule)
         }
         .buttonStyle(.plain)
         .help("Issue actions")
@@ -134,6 +138,12 @@ struct KanbanIssueCard: View {
             Label("Copy ticket ID", systemImage: "doc.on.doc")
         }
 
+        Button {
+            issue.copyAgentChatContextToPasteboard()
+        } label: {
+            Label("Copy for AI agent", systemImage: "sparkles")
+        }
+
         Divider()
 
         Button(role: .destructive) {
@@ -149,7 +159,7 @@ struct KanbanIssueCard: View {
     }
 
     private var secondaryForeground: Color {
-        isSelected ? Color.foreground.opacity(0.72) : .secondary
+        isSelected ? .white : .secondary
     }
 
     private var storyPointsText: String {

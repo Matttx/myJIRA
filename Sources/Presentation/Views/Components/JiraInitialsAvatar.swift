@@ -3,15 +3,16 @@ import SwiftUI
 struct JiraInitialsAvatar: View {
     let name: String?
     var isSelected = false
+    var usesTaskCardMaterial = false
     var showsHoverName = false
     @State private var isHovering = false
 
     var body: some View {
         Text(initials)
             .font(.labelS)
-            .foregroundStyle(isSelected ? Color.foreground : Color.primary)
+            .foregroundStyle(isSelected ? Color.white : Color.primary)
             .frame(width: 30, height: 30)
-            .jiraGlass(shape: .circle, tint: isSelected ? Color.primary : nil, interactive: true)
+            .jiraControlSurface(shape: .circle, usesTaskCardMaterial: usesTaskCardMaterial)
             .overlay {
                 Circle()
                     .stroke(isSelected ? Color.foreground.opacity(0.18) : JiraDesign.hairline, lineWidth: 1)

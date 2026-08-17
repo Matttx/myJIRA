@@ -3,6 +3,7 @@ import SwiftUI
 struct AssigneeAvatarButton: View {
     let assigneeName: String?
     var isSelected = false
+    var usesTaskCardMaterial = false
     var assignableUsers: [JiraUser] = []
     let onAssignToCurrentUser: () -> Void
     let onUnassign: () -> Void
@@ -71,13 +72,17 @@ struct AssigneeAvatarButton: View {
     @ViewBuilder
     private var label: some View {
         if let assigneeName {
-            JiraInitialsAvatar(name: assigneeName, isSelected: isSelected)
+            JiraInitialsAvatar(
+                name: assigneeName,
+                isSelected: isSelected,
+                usesTaskCardMaterial: usesTaskCardMaterial
+            )
         } else {
             Image(systemName: "person")
                 .font(.paragraphS)
-                .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
+                .foregroundStyle(isSelected ? Color.white : .secondary)
                 .frame(width: 30, height: 30)
-                .jiraGlass(shape: .circle, tint: isSelected ? Color.primary : nil, interactive: true)
+                .jiraControlSurface(shape: .circle, usesTaskCardMaterial: usesTaskCardMaterial)
                 .overlay {
                     Circle()
                         .stroke(isSelected ? Color.foreground.opacity(0.18) : JiraDesign.hairline, lineWidth: 1)

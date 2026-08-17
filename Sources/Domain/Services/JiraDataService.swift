@@ -3,6 +3,7 @@ import Foundation
 protocol JiraDataService: Sendable {
     func projects(for resource: JiraAccessibleResource) async throws -> [Project]
     func issues(for project: Project) async throws -> [Issue]
+    func statuses(for project: Project) async throws -> [String]
     func issueTypes(for project: Project) async throws -> [IssueTypeMetadata]
     func creationMetadata(for project: Project, issueTypeID: IssueTypeMetadata.ID) async throws -> IssueCreationMetadata
     func createIssue(in project: Project, draft: IssueCreationDraft) async throws -> CreatedIssue

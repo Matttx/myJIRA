@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MainWindowView: View {
+    @AppStorage(IssueFetchPreferences.storageKey) private var issueFetchLimit = IssueFetchPreferences.defaultLimit
     @State var viewModel: MainWindowViewModel
     @Bindable var router: AppRouter
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
@@ -22,8 +23,6 @@ struct MainWindowView: View {
         .task {
             await viewModel.loadInitialSelection(router: router)
         }
-        .navigationTitle(viewModel.currentProjectTitle)
-        .navigationSubtitle("Showing latest 200 issues")
         .onReceive(NotificationCenter.default.publisher(for: .refreshRequested)) { _ in
             Task { await viewModel.refreshCurrentProject() }
         }
@@ -65,6 +64,17 @@ struct MainWindowView: View {
             }
         }
         .toolbar {
+            if #available(macOS 26.0, *) {
+                ToolbarItem(placement: .navigation) {
+                    issueFetchLimitTitleMenu
+                }
+                .sharedBackgroundVisibility(.hidden)
+            } else {
+                ToolbarItem(placement: .navigation) {
+                    issueFetchLimitTitleMenu
+                }
+            }
+
             ToolbarItem(placement: .automatic) {
                 Button {
                     isIssueInspectorPresented.toggle()
@@ -74,6 +84,15 @@ struct MainWindowView: View {
                 .help(isIssueInspectorPresented ? "Hide detail" : "Show detail")
             }
         }
+        .navigationTitle("")
+    }
+
+    private var issueFetchLimitTitleMenu: some View {
+        IssueFetchLimitTitleMenu(
+            title: viewModel.currentProjectTitle,
+            issueFetchLimit: issueFetchLimit,
+            onSelectLimit: selectIssueFetchLimit
+        )
     }
 
     private func projectContent(_ projectViewModel: ProjectViewModel) -> some View {
@@ -88,6 +107,7 @@ struct MainWindowView: View {
             savedSprintOrder: projectViewModel.backlogSprintOrder,
             savedCollapsedGroupIDs: projectViewModel.collapsedBacklogGroupIDs,
             savedSelectedSprintFilter: projectViewModel.selectedSprintFilter,
+            savedHiddenKanbanColumnTitles: projectViewModel.hiddenKanbanColumnTitles,
             selectedIssueID: $router.selectedIssueID,
             isLoadingInitialData: projectViewModel.isLoadingInitialData,
             isRefreshing: viewModel.isRefreshing || projectViewModel.isRefreshing,
@@ -160,6 +180,7 @@ struct MainWindowView: View {
                     selectedSprintFilter: selectedSprintFilter
                 )
             },
+            onSaveHiddenKanbanColumns: projectViewModel.saveHiddenKanbanColumnTitles,
             onCreateIssue: { draft in
                 if let issue = await projectViewModel.createIssue(draft: draft) {
                     router.selectedIssueID = issue.id
@@ -262,9 +283,11 @@ struct MainWindowView: View {
     }
 
     private func orderedStatusOptions(_ projectViewModel: ProjectViewModel) -> [String] {
-        let statusOptions = Array(Set(projectViewModel.issues.map(\.status))).sorted {
-            $0.localizedStandardCompare($1) == .orderedAscending
-        }
+        let statusOptions = (projectViewModel.kanbanColumnOrder + projectViewModel.issues.map(\.status))
+            .reduce(into: [String]()) { result, status in
+                guard !result.contains(status) else { return }
+                result.append(status)
+            }
         let knownStatuses = projectViewModel.kanbanColumnOrder.filter { statusOptions.contains($0) }
         let newStatuses = statusOptions.filter { !knownStatuses.contains($0) }
         return knownStatuses + newStatuses
@@ -288,5 +311,11 @@ struct MainWindowView: View {
     private func clearError() {
         viewModel.clearGlobalError()
         viewModel.currentProjectViewModel?.errorMessage = nil
+    }
+
+    private func selectIssueFetchLimit(_ limit: Int) {
+        guard limit != issueFetchLimit else { return }
+        issueFetchLimit = limit
+        NotificationCenter.default.post(name: .refreshRequested, object: nil)
     }
 }

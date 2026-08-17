@@ -80,6 +80,10 @@ final class LoggingJiraDataService: JiraDataService, @unchecked Sendable {
         try await call("issues", projectMetadata(project)) { try await wrapped.issues(for: project) }
     }
 
+    func statuses(for project: Project) async throws -> [String] {
+        try await call("statuses", projectMetadata(project)) { try await wrapped.statuses(for: project) }
+    }
+
     func issueTypes(for project: Project) async throws -> [IssueTypeMetadata] {
         try await call("issueTypes", projectMetadata(project)) { try await wrapped.issueTypes(for: project) }
     }

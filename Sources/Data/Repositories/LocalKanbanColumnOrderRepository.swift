@@ -34,4 +34,27 @@ final class LocalKanbanColumnOrderRepository: KanbanColumnOrderRepository, @unch
             }
         }
     }
+
+    func availableStatuses(projectID: Project.ID) async throws -> [String] {
+        try await database.writer.read { db in
+            try ProjectStatusRecord
+                .filter(Column("projectID") == projectID)
+                .order(Column("position").asc)
+                .fetchAll(db)
+                .map(\.status)
+        }
+    }
+
+    func saveAvailableStatuses(projectID: Project.ID, statuses: [String]) async throws {
+        try await database.writer.write { db in
+            try ProjectStatusRecord
+                .filter(Column("projectID") == projectID)
+                .deleteAll(db)
+
+            for (position, status) in statuses.enumerated() {
+                try ProjectStatusRecord(projectID: projectID, status: status, position: position)
+                    .insert(db)
+            }
+        }
+    }
 }

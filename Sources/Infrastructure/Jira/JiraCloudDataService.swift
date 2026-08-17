@@ -1,7 +1,6 @@
 import Foundation
 
 final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
-    private let issueFetchLimit = 200
     private let changelogFetchLimit = 50
     private let replyParentPropertyKey = "myjira.parentCommentId"
     private let authService: AuthService
@@ -138,6 +137,42 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
         }
 
         return issues
+    }
+
+    func statuses(for project: Project) async throws -> [String] {
+        guard let token = try await authService.validToken() else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.atlassian.com"
+        components.path = "/ex/jira/\(project.workspaceID)/rest/api/3/project/\(project.key)/statuses"
+
+        guard let url = components.url else {
+            throw AuthError.invalidConfiguration
+        }
+
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.invalidServerResponse
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            let message = String(data: data, encoding: .utf8) ?? "Unable to load Jira project statuses."
+            throw AuthError.failedTokenExchange(message)
+        }
+
+        let issueTypes = try JSONDecoder().decode([JiraProjectIssueTypeStatusesDTO].self, from: data)
+        var seen = Set<String>()
+        return issueTypes.flatMap(\.statuses).compactMap { status in
+            guard seen.insert(status.name).inserted else { return nil }
+            return status.name
+        }
     }
 
     func issueTypes(for project: Project) async throws -> [IssueTypeMetadata] {
@@ -829,6 +864,7 @@ final class JiraCloudDataService: JiraDataService, @unchecked Sendable {
         accessToken: String,
         storyPointsFieldIDs: [String]
     ) async throws -> [IssueDTO] {
+        let issueFetchLimit = IssueFetchPreferences.limit
         var allIssues: [IssueDTO] = []
         var nextPageToken: String?
         var shouldContinue = true
@@ -1699,6 +1735,10 @@ private actor JiraTransitionCache {
 private struct IssueStatusDTO: Decodable, Sendable {
     var name: String
     var statusCategory: IssueStatusCategoryDTO?
+}
+
+private struct JiraProjectIssueTypeStatusesDTO: Decodable, Sendable {
+    var statuses: [IssueStatusDTO]
 }
 
 private struct IssueStatusCategoryDTO: Decodable, Sendable {

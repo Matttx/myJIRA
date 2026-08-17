@@ -94,6 +94,7 @@ final class AppContainer {
                 wrapping: PollingSyncService(
                     workspaceRepository: workspaceRepository,
                     issueRepository: issueRepository,
+                    kanbanColumnOrderRepository: kanbanColumnOrderRepository,
                     jiraDataService: jiraDataService
                 )
             )

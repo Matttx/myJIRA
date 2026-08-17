@@ -3,6 +3,7 @@ import SwiftUI
 struct EditableStoryPointsTag: View {
     let storyPoints: Double?
     let isSelected: Bool
+    var usesTaskCardMaterial = false
     let onCommit: (Double?) -> Void
 
     @State private var isEditing = false
@@ -35,14 +36,13 @@ struct EditableStoryPointsTag: View {
                 } label: {
                     Text(storyPoints.map { "\(Self.format($0)) SP" } ?? "-")
                         .font(.paragraphS)
-                        .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
+                        .foregroundStyle(isSelected ? Color.white : .secondary)
                         .lineLimit(1)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .jiraGlass(
+                        .jiraControlSurface(
                             shape: .capsule,
-                            tint: isSelected ? Color.primary : nil,
-                            interactive: true
+                            usesTaskCardMaterial: usesTaskCardMaterial
                         )
                 }
                 .buttonStyle(.plain)

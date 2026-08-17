@@ -130,6 +130,15 @@ final class AppDatabase: @unchecked Sendable {
             }
         }
 
+        migrator.registerMigration("createProjectStatuses") { db in
+            try db.create(table: ProjectStatusRecord.databaseTableName) { table in
+                table.column("projectID", .text).notNull().references(ProjectRecord.databaseTableName, onDelete: .cascade)
+                table.column("status", .text).notNull()
+                table.column("position", .integer).notNull()
+                table.primaryKey(["projectID", "status"])
+            }
+        }
+
         migrator.registerMigration("createDisplayPreferences") { db in
             try db.create(table: ProjectDisplayOrderRecord.databaseTableName) { table in
                 table.column("workspaceID", .text).notNull().references(WorkspaceRecord.databaseTableName, onDelete: .cascade)
@@ -156,6 +165,14 @@ final class AppDatabase: @unchecked Sendable {
             try db.create(table: BacklogSelectedSprintFilterRecord.databaseTableName) { table in
                 table.column("projectID", .text).notNull().primaryKey().references(ProjectRecord.databaseTableName, onDelete: .cascade)
                 table.column("filterID", .text).notNull()
+            }
+        }
+
+        migrator.registerMigration("createHiddenKanbanColumns") { db in
+            try db.create(table: HiddenKanbanColumnRecord.databaseTableName) { table in
+                table.column("projectID", .text).notNull().references(ProjectRecord.databaseTableName, onDelete: .cascade)
+                table.column("title", .text).notNull()
+                table.primaryKey(["projectID", "title"])
             }
         }
 

@@ -41,6 +41,12 @@ struct SubtaskRowView: View {
             Label("Copy ticket ID", systemImage: "doc.on.doc")
         }
 
+        Button {
+            subtask.copyAgentChatContextToPasteboard()
+        } label: {
+            Label("Copy for AI agent", systemImage: "sparkles")
+        }
+
         Divider()
 
         Button(role: .destructive) {

@@ -78,6 +78,7 @@ struct JiraInlineValuePickerRow<SelectionValue: Hashable, Content: View>: View {
     let selection: Binding<SelectionValue>
     let isProminent: Bool
     let statusColor: JiraStatusColor?
+    let usesTaskCardMaterial: Bool
     @ViewBuilder let content: Content
 
     init(
@@ -85,12 +86,14 @@ struct JiraInlineValuePickerRow<SelectionValue: Hashable, Content: View>: View {
         selection: Binding<SelectionValue>,
         isProminent: Bool = false,
         statusColor: JiraStatusColor? = nil,
+        usesTaskCardMaterial: Bool = false,
         @ViewBuilder content: () -> Content
     ) {
         self.label = label
         self.selection = selection
         self.isProminent = isProminent
         self.statusColor = statusColor
+        self.usesTaskCardMaterial = usesTaskCardMaterial
         self.content = content()
     }
 
@@ -109,22 +112,36 @@ struct JiraInlineValuePickerRow<SelectionValue: Hashable, Content: View>: View {
             .pickerStyle(.menu)
             .buttonStyle(.plain)
             .tint(foregroundStyle)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
         }
         .font(.paragraphS)
         .foregroundStyle(foregroundStyle)
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
         .background(backgroundStyle)
-        .jiraGlass(shape: .capsule, interactive: true)
+        .jiraControlSurface(shape: .capsule, usesTaskCardMaterial: usesTaskCardMaterial)
         .overlay {
             Capsule()
                 .stroke(statusColor?.border ?? Color.clear, lineWidth: 1)
+                .allowsHitTesting(false)
+        }
+        .overlay {
+            Picker(label ?? "", selection: selection) {
+                content
+            }
+            .labelsHidden()
+            .pickerStyle(.menu)
+            .buttonStyle(.plain)
+            .opacity(0.01)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(Capsule())
         }
     }
 
     private var foregroundStyle: Color {
         if isProminent {
-            return JiraDesign.foreground
+            return .white
         }
 
         if let statusColor {
@@ -213,15 +230,18 @@ private struct JiraGlassModifier: ViewModifier {
                 content
                     .clipShape(Capsule())
                     .glassEffect(glass, in: Capsule())
+                    .contentShape(Capsule())
             case .circle:
                 content
                     .clipShape(Circle())
                     .glassEffect(glass, in: Circle())
+                    .contentShape(Circle())
             case .roundedRectangle(let radius):
                 let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
                 content
                     .clipShape(shape)
                     .glassEffect(glass, in: shape)
+                    .contentShape(shape)
             }
         } else {
             switch shape {
@@ -243,6 +263,33 @@ private struct JiraGlassModifier: ViewModifier {
             .overlay {
                 shape.strokeBorder(Color.white.opacity(0.24), lineWidth: 0.7)
             }
+            .contentShape(shape)
+    }
+}
+
+private struct JiraTaskCardMaterialModifier: ViewModifier {
+    let shape: JiraGlassShape
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        switch shape {
+        case .capsule:
+            material(content, in: Capsule())
+        case .circle:
+            material(content, in: Circle())
+        case .roundedRectangle(let radius):
+            material(content, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+        }
+    }
+
+    private func material<S: InsettableShape>(_ content: Content, in shape: S) -> some View {
+        content
+            .clipShape(shape)
+            .background(.ultraThinMaterial, in: shape)
+            .overlay {
+                shape.strokeBorder(Color.white.opacity(0.18), lineWidth: 0.7)
+            }
+            .contentShape(shape)
     }
 }
 
@@ -253,6 +300,22 @@ extension View {
         interactive: Bool = false
     ) -> some View {
         modifier(JiraGlassModifier(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    @ViewBuilder
+    func jiraControlSurface(
+        shape: JiraGlassShape,
+        usesTaskCardMaterial: Bool
+    ) -> some View {
+        if usesTaskCardMaterial {
+            modifier(JiraTaskCardMaterialModifier(shape: shape))
+        } else {
+            jiraGlass(shape: shape, interactive: true)
+        }
+    }
+
+    func jiraTaskCardMaterial(shape: JiraGlassShape) -> some View {
+        modifier(JiraTaskCardMaterialModifier(shape: shape))
     }
 
     func jiraCapsuleFieldStyle() -> some View {

@@ -32,10 +32,9 @@ struct IssueRowView: View {
         .foregroundStyle(isSelected ? Color.foreground : Color.primary)
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .jiraGlass(
-            shape: .roundedRectangle(JiraDesign.rowRadius),
-            tint: isSelected ? Color.primary : nil,
-            interactive: true
+        .background(
+            cardBackground,
+            in: RoundedRectangle(cornerRadius: JiraDesign.rowRadius)
         )
         .contentShape(RoundedRectangle(cornerRadius: JiraDesign.rowRadius, style: .continuous))
         .onHover { hovering in
@@ -46,6 +45,10 @@ struct IssueRowView: View {
         .contextMenu {
             actionItems
         }
+    }
+
+    private var cardBackground: Color {
+        isSelected ? .primary : Color(nsColor: .quaternarySystemFill)
     }
 
     private var titleBlock: some View {
@@ -64,6 +67,7 @@ struct IssueRowView: View {
         EditableStoryPointsTag(
             storyPoints: issue.storyPoints,
             isSelected: isSelected,
+            usesTaskCardMaterial: true,
             onCommit: onUpdateStoryPoints
         )
     }
@@ -73,6 +77,7 @@ struct IssueRowView: View {
         AssigneeAvatarButton(
             assigneeName: issue.assigneeName,
             isSelected: isSelected,
+            usesTaskCardMaterial: true,
             assignableUsers: assignableUsers,
             onAssignToCurrentUser: onAssignToCurrentUser,
             onUnassign: onUnassign,
@@ -83,7 +88,7 @@ struct IssueRowView: View {
     @ViewBuilder
     private var subtasks: some View {
         if issue.subtaskCount > 0 {
-            SubtaskCountBadge(count: issue.subtaskCount, isSelected: isSelected)
+            SubtaskCountBadge(count: issue.subtaskCount, isSelected: isSelected, usesTaskCardMaterial: true)
         }
     }
 
@@ -94,7 +99,7 @@ struct IssueRowView: View {
                 guard status != issue.status else { return }
                 onChangeStatus(status)
             }
-        ), isProminent: isSelected, statusColor: JiraStatusColor.resolved(for: issue.status)) {
+        ), isProminent: isSelected, statusColor: JiraStatusColor.resolved(for: issue.status), usesTaskCardMaterial: true) {
             ForEach(statusOptions, id: \.self) { status in
                 Text(status).tag(status)
             }
@@ -107,9 +112,9 @@ struct IssueRowView: View {
         } label: {
             Image(systemName: "ellipsis")
                 .font(.paragraphS)
-                .foregroundStyle(isSelected ? Color.foreground.opacity(0.72) : .secondary)
+                .foregroundStyle(isSelected ? Color.white : .secondary)
                 .frame(width: 26, height: 24)
-                .jiraGlass(shape: .capsule, tint: isSelected ? Color.primary : nil, interactive: true)
+                .jiraTaskCardMaterial(shape: .capsule)
         }
         .buttonStyle(.plain)
         .help("Issue actions")
@@ -133,6 +138,12 @@ struct IssueRowView: View {
             copyIssueKey()
         } label: {
             Label("Copy ticket ID", systemImage: "doc.on.doc")
+        }
+
+        Button {
+            issue.copyAgentChatContextToPasteboard()
+        } label: {
+            Label("Copy for AI agent", systemImage: "sparkles")
         }
 
         Divider()

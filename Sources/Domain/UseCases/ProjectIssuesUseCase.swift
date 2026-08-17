@@ -30,10 +30,15 @@ final class ProjectIssuesUseCase: @unchecked Sendable {
 
         let issues = try await issueRepository.issues(projectID: projectID)
         let savedOrder = try await kanbanColumnOrderRepository.columnOrder(projectID: projectID)
+        let availableStatuses = try await kanbanColumnOrderRepository.availableStatuses(projectID: projectID)
 
         return ProjectIssuesSnapshot(
             issues: issues,
-            kanbanColumnOrder: columnOrderResolver.mergedColumnOrder(savedOrder, issues: issues)
+            kanbanColumnOrder: columnOrderResolver.mergedColumnOrder(
+                savedOrder,
+                availableStatuses: availableStatuses,
+                issues: issues
+            )
         )
     }
 
