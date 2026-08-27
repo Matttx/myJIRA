@@ -52,6 +52,7 @@ struct MainWindowView: View {
                     }
                 }
             )
+            .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 320)
         } detail: {
             if let projectViewModel = viewModel.currentProjectViewModel {
                 projectContent(projectViewModel)
@@ -190,9 +191,10 @@ struct MainWindowView: View {
                 return false
             }
         )
+        .environment(\.jiraBaseURL, jiraBaseURL(for: projectViewModel.projectID))
         .inspector(isPresented: $isIssueInspectorPresented) {
             issueDetailInspector(projectViewModel)
-                .inspectorColumnWidth(min: 340, ideal: 440, max: 760)
+                .inspectorColumnWidth(min: 280, ideal: 400, max: 640)
         }
     }
 
@@ -280,6 +282,13 @@ struct MainWindowView: View {
                 }
             }
         )
+        .environment(\.jiraBaseURL, jiraBaseURL(for: projectViewModel.projectID))
+    }
+
+    private func jiraBaseURL(for projectID: Project.ID) -> URL? {
+        viewModel.workspaces.first { workspace in
+            workspace.projects.contains { $0.id == projectID }
+        }?.baseURL
     }
 
     private func orderedStatusOptions(_ projectViewModel: ProjectViewModel) -> [String] {

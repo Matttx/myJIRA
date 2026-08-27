@@ -2,6 +2,8 @@
 import SwiftUI
 
 struct IssueRowView: View {
+    @Environment(\.jiraBaseURL) private var jiraBaseURL
+
     let issue: Issue
     let isSelected: Bool
     let statusOptions: [String]
@@ -138,6 +140,14 @@ struct IssueRowView: View {
             copyIssueKey()
         } label: {
             Label("Copy ticket ID", systemImage: "doc.on.doc")
+        }
+
+        if issue.jiraURL(baseURL: jiraBaseURL) != nil {
+            Button {
+                issue.copyJiraURLToPasteboard(baseURL: jiraBaseURL)
+            } label: {
+                Label("Copy Jira URL", systemImage: "link")
+            }
         }
 
         Button {

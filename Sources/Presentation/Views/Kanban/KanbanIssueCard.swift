@@ -3,6 +3,8 @@ import Foundation
 import SwiftUI
 
 struct KanbanIssueCard: View {
+    @Environment(\.jiraBaseURL) private var jiraBaseURL
+
     let issue: Issue
     let isSelected: Bool
     let onOpen: () -> Void
@@ -136,6 +138,14 @@ struct KanbanIssueCard: View {
             copyIssueKey()
         } label: {
             Label("Copy ticket ID", systemImage: "doc.on.doc")
+        }
+
+        if issue.jiraURL(baseURL: jiraBaseURL) != nil {
+            Button {
+                issue.copyJiraURLToPasteboard(baseURL: jiraBaseURL)
+            } label: {
+                Label("Copy Jira URL", systemImage: "link")
+            }
         }
 
         Button {

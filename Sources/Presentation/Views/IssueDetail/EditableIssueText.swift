@@ -6,6 +6,7 @@ struct EditableIssueText: View {
     let font: Font
     let emptyFont: Font
     let lineLimit: ClosedRange<Int>
+    var usesScrollableEditor = false
     let onCommit: (String?) async -> Bool
 
     @State private var draftText = ""
@@ -31,8 +32,15 @@ struct EditableIssueText: View {
             }
         }
         .onChange(of: text) { _, newValue in
-            guard !isEditing else { return }
+            guard !isEditing else {
+                cancelEditing()
+                return
+            }
             draftText = newValue ?? ""
+        }
+        .onChange(of: isFocused) { _, focused in
+            guard isEditing, !focused, !isSaving else { return }
+            submit()
         }
     }
 
@@ -49,22 +57,40 @@ struct EditableIssueText: View {
     }
 
     private var editor: some View {
-        TextField(placeholder, text: $draftText, axis: .vertical)
-            .font(font)
-            .textFieldStyle(.plain)
-            .lineLimit(lineLimit)
-            .submitLabel(.done)
-            .focused($isFocused)
-            .disabled(isSaving)
-            .onSubmit {
-                submit()
+        Group {
+            if usesScrollableEditor {
+                ZStack(alignment: .topLeading) {
+                    Text(draftText.isEmpty ? " " : draftText)
+                        .font(font)
+                        .lineSpacing(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .hidden()
+
+                    TextEditor(text: $draftText)
+                        .scrollContentBackground(.hidden)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(.horizontal, -5)
+                        .padding(.vertical, -8)
+                }
+            } else {
+                TextField(placeholder, text: $draftText, axis: .vertical)
+                    .textFieldStyle(.plain)
+                    .lineLimit(lineLimit)
+                    .submitLabel(.done)
+                    .onSubmit {
+                        submit()
+                    }
             }
-            .onExitCommand {
-                cancelEditing()
-            }
-            .task {
-                isFocused = true
-            }
+        }
+        .font(font)
+        .focused($isFocused)
+        .disabled(isSaving)
+        .onExitCommand {
+            cancelEditing()
+        }
+        .task {
+            isFocused = true
+        }
     }
 
     private var doubleClickGesture: some Gesture {
@@ -93,6 +119,8 @@ struct EditableIssueText: View {
             if didSave || nextText == text {
                 isEditing = false
                 isFocused = false
+            } else {
+                isFocused = true
             }
         }
     }

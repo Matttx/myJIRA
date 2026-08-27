@@ -319,100 +319,113 @@ struct BacklogView: View {
     }
 
     private var toolbar: some View {
-        HStack(alignment: .top, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 16) {
-                    ForEach(BacklogFocus.allCases) { focus in
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.18)) {
-                                selectedFocus = focus
-                            }
-                        } label: {
-                            Text(focus.title)
-                                .font(.headingL)
-                                .foregroundStyle(titleColor(focus))
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(focus == selectedFocus ? .isSelected : [])
-                    }
-                }
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .top, spacing: 16) {
+                focusPicker
+
+                Spacer(minLength: 16)
+
+                toolbarControls
             }
 
-            Spacer()
-
-            HStack(spacing: 8) {
-                JiraSearchField(text: $searchQuery)
-                    .frame(width: 260)
-                    .onSubmit {
-                        selectBestSearchMatch()
-                    }
-
-                Button {
-                    isFilterSheetPresented = true
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "line.3.horizontal.decrease")
-                        Text("Filtrer")
-                        if issueFilters.activeFilterCount > 0 {
-                            Text("\(issueFilters.activeFilterCount)")
-                                .font(.labelS)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(JiraDesign.accent.opacity(0.2))
-                                .clipShape(.capsule)
-                        }
-                    }
-                    .font(.paragraphS)
-                    .foregroundStyle(issueFilters.isEmpty ? Color.primary : JiraDesign.accent)
-                    .padding(.horizontal, 11)
-                    .frame(height: 28)
-                    .jiraGlass(shape: .capsule, interactive: true)
-                }
-                .buttonStyle(.plain)
-                .help("Filtrer les tickets")
-
-                JiraInlineValuePickerRow("Sprint", selection: Binding(
-                    get: { selectedSprintFilter },
-                    set: { filter in
-                        selectedSprintFilter = filter
-                        saveBacklogPreferences()
-                    }
-                )) {
-                    ForEach(sprintFilterOptions) { filter in
-                        Text(filter.title).tag(filter)
-                    }
-                }
-
-                Button {
-                    isCreateIssuePresented = true
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.labelM)
-                }
-                .buttonStyle(.borderless)
-                .frame(width: 28, height: 28)
-                .jiraGlass(shape: .capsule, interactive: true)
-                .help("Create issue")
-
-                Button(action: onRefresh) {
-                    if isRefreshing {
-                        ProgressView()
-                            .controlSize(.small)
-                    } else {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.labelM)
-                    }
-                }
-                .buttonStyle(.borderless)
-                .frame(width: 28, height: 28)
-                .jiraGlass(shape: .capsule, interactive: true)
-                .help("Refresh")
+            VStack(alignment: .leading, spacing: 12) {
+                focusPicker
+                toolbarControls
+                    .frame(maxWidth: .infinity, alignment: .trailing)
             }
-            .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .padding(.horizontal, 16)
         .padding(.top, 16)
+    }
+
+    private var focusPicker: some View {
+        HStack(spacing: 16) {
+            ForEach(BacklogFocus.allCases) { focus in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.18)) {
+                        selectedFocus = focus
+                    }
+                } label: {
+                    Text(focus.title)
+                        .font(.headingL)
+                        .foregroundStyle(titleColor(focus))
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(focus == selectedFocus ? .isSelected : [])
+            }
+        }
+    }
+
+    private var toolbarControls: some View {
+        HStack(spacing: 8) {
+            JiraSearchField(text: $searchQuery)
+                .frame(minWidth: 160, idealWidth: 260, maxWidth: 260)
+                .onSubmit {
+                    selectBestSearchMatch()
+                }
+
+            Button {
+                isFilterSheetPresented = true
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "line.3.horizontal.decrease")
+                    Text("Filtrer")
+                    if issueFilters.activeFilterCount > 0 {
+                        Text("\(issueFilters.activeFilterCount)")
+                            .font(.labelS)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(JiraDesign.accent.opacity(0.2))
+                            .clipShape(.capsule)
+                    }
+                }
+                .font(.paragraphS)
+                .foregroundStyle(issueFilters.isEmpty ? Color.primary : JiraDesign.accent)
+                .padding(.horizontal, 11)
+                .frame(height: 28)
+                .jiraGlass(shape: .capsule, interactive: true)
+            }
+            .buttonStyle(.plain)
+            .help("Filtrer les tickets")
+
+            JiraInlineValuePickerRow("Sprint", selection: Binding(
+                get: { selectedSprintFilter },
+                set: { filter in
+                    selectedSprintFilter = filter
+                    saveBacklogPreferences()
+                }
+            )) {
+                ForEach(sprintFilterOptions) { filter in
+                    Text(filter.title).tag(filter)
+                }
+            }
+
+            Button {
+                isCreateIssuePresented = true
+            } label: {
+                Image(systemName: "plus")
+                    .font(.labelM)
+            }
+            .buttonStyle(.borderless)
+            .frame(width: 28, height: 28)
+            .jiraGlass(shape: .capsule, interactive: true)
+            .help("Create issue")
+
+            Button(action: onRefresh) {
+                if isRefreshing {
+                    ProgressView()
+                        .controlSize(.small)
+                } else {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.labelM)
+                }
+            }
+            .buttonStyle(.borderless)
+            .frame(width: 28, height: 28)
+            .jiraGlass(shape: .capsule, interactive: true)
+            .help("Refresh")
+        }
     }
 
     private var backlogList: some View {

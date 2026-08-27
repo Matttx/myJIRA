@@ -2,6 +2,8 @@
 import SwiftUI
 
 struct SubtaskRowView: View {
+    @Environment(\.jiraBaseURL) private var jiraBaseURL
+
     let subtask: Issue
     let onSelect: () -> Void
     let onDelete: () -> Void
@@ -39,6 +41,14 @@ struct SubtaskRowView: View {
             copyIssueKey()
         } label: {
             Label("Copy ticket ID", systemImage: "doc.on.doc")
+        }
+
+        if subtask.jiraURL(baseURL: jiraBaseURL) != nil {
+            Button {
+                subtask.copyJiraURLToPasteboard(baseURL: jiraBaseURL)
+            } label: {
+                Label("Copy Jira URL", systemImage: "link")
+            }
         }
 
         Button {

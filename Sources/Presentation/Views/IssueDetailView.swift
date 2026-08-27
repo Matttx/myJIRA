@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct IssueDetailView: View {
+    @Environment(\.jiraBaseURL) private var jiraBaseURL
+
     let issue: Issue?
     let parentIssue: Issue?
     let subtasks: [Issue]
@@ -187,6 +189,7 @@ struct IssueDetailView: View {
                         return await onUpdateSummary(issue.id, nextSummary)
                     }
                 )
+                .id("summary-\(issue.id)")
             }
         }
     }
@@ -203,6 +206,14 @@ struct IssueDetailView: View {
                 onSelectIssue(issue.id)
             } label: {
                 Label("Edit", systemImage: "square.and.pencil")
+            }
+
+            if issue.jiraURL(baseURL: jiraBaseURL) != nil {
+                Button {
+                    issue.copyJiraURLToPasteboard(baseURL: jiraBaseURL)
+                } label: {
+                    Label("Copy Jira URL", systemImage: "link")
+                }
             }
 
             Divider()
@@ -283,10 +294,12 @@ struct IssueDetailView: View {
                     font: .paragraphM,
                     emptyFont: .paragraphM,
                     lineLimit: 3...12,
+                    usesScrollableEditor: true,
                     onCommit: { nextDescription in
                         await onUpdateDescription(issue.id, nextDescription)
                     }
                 )
+                .id("description-\(issue.id)")
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .jiraPanel(radius: JiraDesign.controlRadius, padding: 18)

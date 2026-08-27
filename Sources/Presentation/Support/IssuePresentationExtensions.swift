@@ -1,5 +1,17 @@
 @preconcurrency import AppKit
 import Foundation
+import SwiftUI
+
+private struct JiraBaseURLEnvironmentKey: EnvironmentKey {
+    static let defaultValue: URL? = nil
+}
+
+extension EnvironmentValues {
+    var jiraBaseURL: URL? {
+        get { self[JiraBaseURLEnvironmentKey.self] }
+        set { self[JiraBaseURLEnvironmentKey.self] = newValue }
+    }
+}
 
 extension Issue {
     var subtaskCount: Int {
@@ -96,6 +108,26 @@ extension Issue {
         }
 
         return sections.joined(separator: "\n\n")
+    }
+
+    func jiraURL(baseURL: URL?) -> URL? {
+        guard let baseURL,
+              let scheme = baseURL.scheme?.lowercased(),
+              scheme == "https" || scheme == "http",
+              baseURL.host != nil,
+              key.nilIfBlank != nil
+        else { return nil }
+
+        return baseURL
+            .appendingPathComponent("browse", isDirectory: true)
+            .appendingPathComponent(key)
+    }
+
+    @MainActor
+    func copyJiraURLToPasteboard(baseURL: URL?) {
+        guard let jiraURL = jiraURL(baseURL: baseURL) else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(jiraURL.absoluteString, forType: .string)
     }
 
     @MainActor
