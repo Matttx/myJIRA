@@ -2,26 +2,43 @@ import SwiftUI
 
 struct MainWindowView: View {
     @AppStorage(IssueFetchPreferences.storageKey) private var issueFetchLimit = IssueFetchPreferences.defaultLimit
+    @AppStorage("lastSelectedProjectID") private var lastSelectedProjectID = ""
     @State var viewModel: MainWindowViewModel
     @Bindable var router: AppRouter
-    @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @State private var isProjectPickerPresented = false
     @State private var isIssueInspectorPresented = true
+    @State private var isCompactWindow = false
+
+    private let compactWindowThreshold: CGFloat = 1_100
 
     var body: some View {
-        Group {
-            if viewModel.isConnected {
-                appContent
-            } else {
-                ConnectJiraView(isConnecting: viewModel.isRefreshing) { configuration in
-                    Task {
-                        await viewModel.connect(configuration: configuration, router: router)
+        GeometryReader { geometry in
+            Group {
+                if viewModel.isConnected {
+                    appContent
+                } else {
+                    ConnectJiraView(isConnecting: viewModel.isRefreshing) { configuration in
+                        Task {
+                            await viewModel.connect(configuration: configuration, router: router)
+                        }
                     }
                 }
+            }
+            .onAppear {
+                updateWindowLayout(for: geometry.size.width)
+            }
+            .onChange(of: geometry.size.width) { _, width in
+                updateWindowLayout(for: width)
             }
         }
         .endEditingOnOutsideClick()
         .task {
+            restoreLastSelectedProject()
             await viewModel.loadInitialSelection(router: router)
+        }
+        .onChange(of: router.selectedProjectID) { _, projectID in
+            guard let projectID else { return }
+            lastSelectedProjectID = projectID
         }
         .onReceive(NotificationCenter.default.publisher(for: .refreshRequested)) { _ in
             Task { await viewModel.refreshCurrentProject() }
@@ -36,24 +53,7 @@ struct MainWindowView: View {
     }
 
     private var appContent: some View {
-        NavigationSplitView(columnVisibility: $columnVisibility) {
-            SidebarView(
-                workspaces: viewModel.workspaces,
-                selectedWorkspaceID: $router.selectedWorkspaceID,
-                selectedProjectID: $router.selectedProjectID,
-                onSelectWorkspace: { workspace in
-                    Task {
-                        await viewModel.selectWorkspace(workspace, router: router)
-                    }
-                },
-                onSelectProject: { project in
-                    Task {
-                        await viewModel.selectProject(project, router: router)
-                    }
-                }
-            )
-            .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 320)
-        } detail: {
+        NavigationStack {
             if let projectViewModel = viewModel.currentProjectViewModel {
                 projectContent(projectViewModel)
             } else {
@@ -65,6 +65,28 @@ struct MainWindowView: View {
             }
         }
         .toolbar {
+            ToolbarItem(placement: .navigation) {
+                Button {
+                    isProjectPickerPresented.toggle()
+                } label: {
+                    Image(systemName: "sidebar.left")
+                }
+                .help("Choose a project")
+                .popover(isPresented: $isProjectPickerPresented, arrowEdge: .bottom) {
+                    ProjectPickerView(
+                        workspaces: viewModel.workspaces,
+                        selectedProjectID: $router.selectedProjectID,
+                        onSelectProject: { project in
+                            isProjectPickerPresented = false
+                            Task {
+                                await viewModel.selectProject(project, router: router)
+                            }
+                        }
+                    )
+                    .frame(width: 300, height: 420)
+                }
+            }
+
             if #available(macOS 26.0, *) {
                 ToolbarItem(placement: .navigation) {
                     issueFetchLimitTitleMenu
@@ -76,13 +98,15 @@ struct MainWindowView: View {
                 }
             }
 
-            ToolbarItem(placement: .automatic) {
-                Button {
-                    isIssueInspectorPresented.toggle()
-                } label: {
-                    Image(systemName: "sidebar.right")
+            if !isCompactWindow {
+                ToolbarItem(placement: .automatic) {
+                    Button {
+                        isIssueInspectorPresented.toggle()
+                    } label: {
+                        Image(systemName: "sidebar.right")
+                    }
+                    .help(isIssueInspectorPresented ? "Hide detail" : "Show detail")
                 }
-                .help(isIssueInspectorPresented ? "Hide detail" : "Show detail")
             }
         }
         .navigationTitle("")
@@ -192,9 +216,24 @@ struct MainWindowView: View {
             }
         )
         .environment(\.jiraBaseURL, jiraBaseURL(for: projectViewModel.projectID))
-        .inspector(isPresented: $isIssueInspectorPresented) {
+        .inspector(isPresented: desktopInspectorPresentation) {
             issueDetailInspector(projectViewModel)
                 .inspectorColumnWidth(min: 280, ideal: 400, max: 640)
+        }
+        .sheet(item: compactSelectedIssue(projectViewModel)) { _ in
+            issueDetailInspector(projectViewModel)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        router.selectedIssueID = nil
+                    } label: {
+                        Image(systemName: "xmark")
+                    }
+                    .keyboardShortcut(.cancelAction)
+                    .help("Close issue details")
+                }
+            }
+            .frame(minWidth: 760, idealWidth: 820, minHeight: 640, idealHeight: 760)
         }
     }
 
@@ -289,6 +328,43 @@ struct MainWindowView: View {
         viewModel.workspaces.first { workspace in
             workspace.projects.contains { $0.id == projectID }
         }?.baseURL
+    }
+
+    private var desktopInspectorPresentation: Binding<Bool> {
+        Binding(
+            get: { isIssueInspectorPresented && !isCompactWindow },
+            set: { isPresented in
+                guard !isCompactWindow else { return }
+                isIssueInspectorPresented = isPresented
+            }
+        )
+    }
+
+    private func compactSelectedIssue(_ projectViewModel: ProjectViewModel) -> Binding<Issue?> {
+        Binding(
+            get: {
+                guard isCompactWindow else { return nil }
+                return projectViewModel.issue(id: router.selectedIssueID)
+            },
+            set: { issue in
+                if let issue {
+                    router.selectedIssueID = issue.id
+                } else if isCompactWindow {
+                    router.selectedIssueID = nil
+                }
+            }
+        )
+    }
+
+    private func updateWindowLayout(for width: CGFloat) {
+        let shouldUseCompactLayout = width < compactWindowThreshold
+        guard shouldUseCompactLayout != isCompactWindow else { return }
+        isCompactWindow = shouldUseCompactLayout
+    }
+
+    private func restoreLastSelectedProject() {
+        guard router.selectedProjectID == nil, !lastSelectedProjectID.isEmpty else { return }
+        router.selectedProjectID = lastSelectedProjectID
     }
 
     private func orderedStatusOptions(_ projectViewModel: ProjectViewModel) -> [String] {

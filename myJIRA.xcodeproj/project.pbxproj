@@ -39,10 +39,8 @@
 		100000000000000000000032 /* IssueDetailPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000132 /* IssueDetailPage.swift */; };
 		100000000000000000000033 /* IssuePresentationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000133 /* IssuePresentationExtensions.swift */; };
 		100000000000000000000034 /* JiraInitialsAvatar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000134 /* JiraInitialsAvatar.swift */; };
-		100000000000000000000035 /* JiraSearchField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000135 /* JiraSearchField.swift */; };
 		100000000000000000000036 /* SubtaskCountBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000136 /* SubtaskCountBadge.swift */; };
 		100000000000000000000037 /* EditableStoryPointsTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000137 /* EditableStoryPointsTag.swift */; };
-		100000000000000000000038 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000138 /* FlowLayout.swift */; };
 		100000000000000000000039 /* CreateIssueSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000139 /* CreateIssueSheet.swift */; };
 		10000000000000000000003A /* IssueRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000013A /* IssueRowView.swift */; };
 		10000000000000000000003B /* InlineIssueComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000013B /* InlineIssueComposer.swift */; };
@@ -70,7 +68,6 @@
 		10000000000000000000000D /* Records.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010D /* Records.swift */; };
 		10000000000000000000000E /* LocalWorkspaceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010E /* LocalWorkspaceRepository.swift */; };
 		10000000000000000000000F /* LocalIssueRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000010F /* LocalIssueRepository.swift */; };
-		100000000000000000000010 /* SeedDataProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000110 /* SeedDataProvider.swift */; };
 		100000000000000000000011 /* AtlassianAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000111 /* AtlassianAuthService.swift */; };
 		100000000000000000000012 /* AuthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000112 /* AuthModels.swift */; };
 		100000000000000000000013 /* KeychainSecretStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000113 /* KeychainSecretStore.swift */; };
@@ -80,7 +77,7 @@
 		100000000000000000000016 /* PollingSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000116 /* PollingSyncService.swift */; };
 		100000000000000000000017 /* MainWindowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000117 /* MainWindowViewModel.swift */; };
 		100000000000000000000018 /* MainWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000118 /* MainWindowView.swift */; };
-		100000000000000000000019 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000119 /* SidebarView.swift */; };
+		100000000000000000000019 /* ProjectPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000119 /* ProjectPickerView.swift */; };
 		10000000000000000000001A /* BacklogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000011A /* BacklogView.swift */; };
 		10000000000000000000001B /* IssueDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000011B /* IssueDetailView.swift */; };
 		10000000000000000000001C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000011C /* SettingsView.swift */; };
@@ -124,7 +121,6 @@
 		10000000000000000000010D /* Records.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Records.swift; sourceTree = "<group>"; };
 		10000000000000000000010E /* LocalWorkspaceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalWorkspaceRepository.swift; sourceTree = "<group>"; };
 		10000000000000000000010F /* LocalIssueRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalIssueRepository.swift; sourceTree = "<group>"; };
-		100000000000000000000110 /* SeedDataProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedDataProvider.swift; sourceTree = "<group>"; };
 		100000000000000000000111 /* AtlassianAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlassianAuthService.swift; sourceTree = "<group>"; };
 		100000000000000000000112 /* AuthModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthModels.swift; sourceTree = "<group>"; };
 		100000000000000000000113 /* KeychainSecretStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainSecretStore.swift; sourceTree = "<group>"; };
@@ -134,7 +130,7 @@
 		100000000000000000000116 /* PollingSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollingSyncService.swift; sourceTree = "<group>"; };
 		100000000000000000000117 /* MainWindowViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowViewModel.swift; sourceTree = "<group>"; };
 		100000000000000000000118 /* MainWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowView.swift; sourceTree = "<group>"; };
-		100000000000000000000119 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		100000000000000000000119 /* ProjectPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectPickerView.swift; sourceTree = "<group>"; };
 		10000000000000000000011A /* BacklogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacklogView.swift; sourceTree = "<group>"; };
 		10000000000000000000011B /* IssueDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueDetailView.swift; sourceTree = "<group>"; };
 		10000000000000000000011C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -161,10 +157,8 @@
 		100000000000000000000132 /* IssueDetailPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueDetailPage.swift; sourceTree = "<group>"; };
 		100000000000000000000133 /* IssuePresentationExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssuePresentationExtensions.swift; sourceTree = "<group>"; };
 		100000000000000000000134 /* JiraInitialsAvatar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JiraInitialsAvatar.swift; sourceTree = "<group>"; };
-		100000000000000000000135 /* JiraSearchField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JiraSearchField.swift; sourceTree = "<group>"; };
 		100000000000000000000136 /* SubtaskCountBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtaskCountBadge.swift; sourceTree = "<group>"; };
 		100000000000000000000137 /* EditableStoryPointsTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableStoryPointsTag.swift; sourceTree = "<group>"; };
-		100000000000000000000138 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		100000000000000000000139 /* CreateIssueSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateIssueSheet.swift; sourceTree = "<group>"; };
 		10000000000000000000013A /* IssueRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueRowView.swift; sourceTree = "<group>"; };
 		10000000000000000000013B /* InlineIssueComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineIssueComposer.swift; sourceTree = "<group>"; };
@@ -280,7 +274,6 @@
 			children = (
 				100000000000000000000307 /* Persistence */,
 				100000000000000000000308 /* Repositories */,
-				100000000000000000000110 /* SeedDataProvider.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -405,7 +398,7 @@
 				100000000000000000000316 /* Kanban */,
 				100000000000000000000317 /* IssueDetail */,
 				100000000000000000000118 /* MainWindowView.swift */,
-				100000000000000000000119 /* SidebarView.swift */,
+				100000000000000000000119 /* ProjectPickerView.swift */,
 				10000000000000000000011A /* BacklogView.swift */,
 				100000000000000000000121 /* ConnectJiraView.swift */,
 				10000000000000000000011B /* IssueDetailView.swift */,
@@ -419,10 +412,8 @@
 			children = (
 				100000000000000000000137 /* EditableStoryPointsTag.swift */,
 				100000000000000000000149 /* AssigneeAvatarButton.swift */,
-				100000000000000000000138 /* FlowLayout.swift */,
 				100000000000000000000146 /* IssueTypeIcon.swift */,
 				100000000000000000000134 /* JiraInitialsAvatar.swift */,
-				100000000000000000000135 /* JiraSearchField.swift */,
 				10000000000000000000015A /* IssueFetchLimitTitleMenu.swift */,
 				10000000000000000000015B /* IssueFetchLimitPopover.swift */,
 				100000000000000000000136 /* SubtaskCountBadge.swift */,
@@ -632,7 +623,6 @@
 				100000000000000000000053 /* PersonalDataReportingService.swift in Sources */,
 				100000000000000000000054 /* LocalPersonalDataRepository.swift in Sources */,
 				100000000000000000000055 /* AtlassianPersonalDataReportingService.swift in Sources */,
-				100000000000000000000010 /* SeedDataProvider.swift in Sources */,
 				100000000000000000000011 /* AtlassianAuthService.swift in Sources */,
 				100000000000000000000012 /* AuthModels.swift in Sources */,
 				100000000000000000000020 /* DefaultJiraConnectionService.swift in Sources */,
@@ -651,15 +641,13 @@
 				100000000000000000000023 /* JiraFonts.swift in Sources */,
 				100000000000000000000024 /* JiraDesign.swift in Sources */,
 				100000000000000000000034 /* JiraInitialsAvatar.swift in Sources */,
-				100000000000000000000035 /* JiraSearchField.swift in Sources */,
 				10000000000000000000005A /* IssueFetchLimitTitleMenu.swift in Sources */,
 				10000000000000000000005B /* IssueFetchLimitPopover.swift in Sources */,
 				100000000000000000000046 /* IssueTypeIcon.swift in Sources */,
 				100000000000000000000036 /* SubtaskCountBadge.swift in Sources */,
 				100000000000000000000037 /* EditableStoryPointsTag.swift in Sources */,
 				100000000000000000000049 /* AssigneeAvatarButton.swift in Sources */,
-				100000000000000000000038 /* FlowLayout.swift in Sources */,
-				100000000000000000000019 /* SidebarView.swift in Sources */,
+				100000000000000000000019 /* ProjectPickerView.swift in Sources */,
 				10000000000000000000001A /* BacklogView.swift in Sources */,
 				100000000000000000000039 /* CreateIssueSheet.swift in Sources */,
 				100000000000000000000056 /* IssueFilterSheet.swift in Sources */,
@@ -811,7 +799,7 @@
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -822,7 +810,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.matteofauchon.myjira;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = macosx;
@@ -840,7 +828,7 @@
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_DEBUG_DYLIB = NO;
@@ -852,7 +840,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.matteofauchon.myjira;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = macosx;

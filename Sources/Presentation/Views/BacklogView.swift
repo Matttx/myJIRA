@@ -88,6 +88,10 @@ struct BacklogView: View {
             }
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .searchable(text: $searchQuery, placement: .toolbar, prompt: "Search tickets")
+        .onSubmit(of: .search) {
+            selectBestSearchMatch()
+        }
         .onAppear {
             applySavedBacklogPreferences()
             reconcileSprintOrder()
@@ -359,12 +363,6 @@ struct BacklogView: View {
 
     private var toolbarControls: some View {
         HStack(spacing: 8) {
-            JiraSearchField(text: $searchQuery)
-                .frame(minWidth: 160, idealWidth: 260, maxWidth: 260)
-                .onSubmit {
-                    selectBestSearchMatch()
-                }
-
             Button {
                 isFilterSheetPresented = true
             } label: {

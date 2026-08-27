@@ -3,11 +3,9 @@ import GRDB
 
 final class LocalIssueRepository: IssueRepository, @unchecked Sendable {
     private let database: AppDatabase
-    private let seedDataProvider: SeedDataProvider
 
-    init(database: AppDatabase, seedDataProvider: SeedDataProvider) {
+    init(database: AppDatabase) {
         self.database = database
-        self.seedDataProvider = seedDataProvider
     }
 
     func issues(projectID: Project.ID) async throws -> [Issue] {
@@ -24,10 +22,6 @@ final class LocalIssueRepository: IssueRepository, @unchecked Sendable {
         try await database.writer.read { db in
             try IssueRecord.fetchOne(db, key: id)?.domainValue
         }
-    }
-
-    func refreshIssues(projectID: Project.ID) async throws {
-        try await seedDataProvider.populate(database: database)
     }
 
     func upsertIssue(_ issue: Issue) async throws {

@@ -2,15 +2,8 @@ import Foundation
 
 @Observable
 final class AppContainer {
-    let database: AppDatabase
-    let workspaceRepository: WorkspaceRepository
-    let issueRepository: IssueRepository
-    let kanbanColumnOrderRepository: KanbanColumnOrderRepository
     let displayPreferencesRepository: DisplayPreferencesRepository
-    let syncService: SyncService
     let authService: AuthService
-    let secretStore: SecretStore
-    let jiraDataService: JiraDataService
     let jiraConnectionService: JiraConnectionService
     let jiraSessionUseCase: JiraSessionUseCase
     let projectIssuesUseCase: ProjectIssuesUseCase
@@ -22,15 +15,8 @@ final class AppContainer {
     let personalDataReportingService: PersonalDataReportingService
 
     init(
-        database: AppDatabase,
-        workspaceRepository: WorkspaceRepository,
-        issueRepository: IssueRepository,
-        kanbanColumnOrderRepository: KanbanColumnOrderRepository,
         displayPreferencesRepository: DisplayPreferencesRepository,
-        syncService: SyncService,
         authService: AuthService,
-        secretStore: SecretStore,
-        jiraDataService: JiraDataService,
         jiraConnectionService: JiraConnectionService,
         jiraSessionUseCase: JiraSessionUseCase,
         projectIssuesUseCase: ProjectIssuesUseCase,
@@ -41,15 +27,8 @@ final class AppContainer {
         projectUsersManager: ProjectUsersManager,
         personalDataReportingService: PersonalDataReportingService
     ) {
-        self.database = database
-        self.workspaceRepository = workspaceRepository
-        self.issueRepository = issueRepository
-        self.kanbanColumnOrderRepository = kanbanColumnOrderRepository
         self.displayPreferencesRepository = displayPreferencesRepository
-        self.syncService = syncService
         self.authService = authService
-        self.secretStore = secretStore
-        self.jiraDataService = jiraDataService
         self.jiraConnectionService = jiraConnectionService
         self.jiraSessionUseCase = jiraSessionUseCase
         self.projectIssuesUseCase = projectIssuesUseCase
@@ -64,7 +43,6 @@ final class AppContainer {
     static func live() -> AppContainer {
         do {
             let database = try AppDatabase.openDefault()
-            let seed = SeedDataProvider()
             let secretStore: SecretStore = LoggingSecretStore(
                 wrapping: KeychainSecretStore(service: "dev.matteofauchon.myjira")
             )
@@ -74,8 +52,8 @@ final class AppContainer {
             let jiraDataService: JiraDataService = LoggingJiraDataService(
                 wrapping: JiraCloudDataService(authService: authService)
             )
-            let workspaceRepository = LocalWorkspaceRepository(database: database, seedDataProvider: seed)
-            let issueRepository = LocalIssueRepository(database: database, seedDataProvider: seed)
+            let workspaceRepository = LocalWorkspaceRepository(database: database)
+            let issueRepository = LocalIssueRepository(database: database)
             let kanbanColumnOrderRepository = LocalKanbanColumnOrderRepository(database: database)
             let displayPreferencesRepository = LocalDisplayPreferencesRepository(database: database)
             let personalDataRepository = LocalPersonalDataRepository(database: database)
@@ -128,15 +106,8 @@ final class AppContainer {
             )
 
             return AppContainer(
-                database: database,
-                workspaceRepository: workspaceRepository,
-                issueRepository: issueRepository,
-                kanbanColumnOrderRepository: kanbanColumnOrderRepository,
                 displayPreferencesRepository: displayPreferencesRepository,
-                syncService: syncService,
                 authService: authService,
-                secretStore: secretStore,
-                jiraDataService: jiraDataService,
                 jiraConnectionService: jiraConnectionService,
                 jiraSessionUseCase: jiraSessionUseCase,
                 projectIssuesUseCase: projectIssuesUseCase,

@@ -64,7 +64,7 @@ final class MainWindowViewModel {
         }
 
         do {
-            workspaces = try await orderedWorkspaces(try await jiraSessionUseCase.workspaces())
+            workspaces = try await jiraSessionUseCase.workspaces()
         } catch {
             errorMessage = error.localizedDescription
             return
@@ -82,11 +82,10 @@ final class MainWindowViewModel {
         defer { isRefreshing = false }
 
         do {
-            workspaces = try await orderedWorkspaces(try await jiraSessionUseCase.connect(configuration: configuration))
+            workspaces = try await jiraSessionUseCase.connect(configuration: configuration)
             isConnected = true
             projectViewModels.removeAll()
             currentProjectViewModel = nil
-            router.selectedWorkspaceID = nil
             router.selectedProjectID = nil
             router.selectedIssueID = nil
             await loadInitialSelection(router: router)
@@ -105,7 +104,7 @@ final class MainWindowViewModel {
         await currentProjectViewModel.refresh()
 
         do {
-            workspaces = try await orderedWorkspaces(try await jiraSessionUseCase.workspaces())
+            workspaces = try await jiraSessionUseCase.workspaces()
             await reportPersonalDataIfDue()
         } catch {
             errorMessage = error.localizedDescription
@@ -121,11 +120,6 @@ final class MainWindowViewModel {
         } catch {
             errorMessage = error.localizedDescription
         }
-    }
-
-    func selectWorkspace(_ workspace: Workspace, router: AppRouter) async {
-        router.select(workspace: workspace)
-        await selectProject(router.selectedProjectID)
     }
 
     func selectProject(_ project: Project, router: AppRouter) async {
@@ -172,50 +166,20 @@ final class MainWindowViewModel {
         return viewModel
     }
 
-    private func orderedWorkspaces(_ workspaces: [Workspace]) async throws -> [Workspace] {
-        var orderedWorkspaces: [Workspace] = []
-
-        for workspace in workspaces {
-            let savedOrder = try await displayPreferencesRepository.projectOrder(workspaceID: workspace.id)
-            let savedIDs = Set(savedOrder)
-            let orderedProjects = savedOrder.compactMap { projectID in
-                workspace.projects.first { $0.id == projectID }
-            }
-            let newProjects = workspace.projects.filter { !savedIDs.contains($0.id) }
-
-            var orderedWorkspace = workspace
-            orderedWorkspace.projects = orderedProjects + newProjects
-            orderedWorkspaces.append(orderedWorkspace)
-        }
-
-        return orderedWorkspaces
-    }
-
     private func ensureValidInitialSelection(router: AppRouter) {
         guard !workspaces.isEmpty else {
-            router.selectedWorkspaceID = nil
             router.selectedProjectID = nil
             return
         }
 
-        let selectedWorkspace = workspaces.first { $0.id == router.selectedWorkspaceID }
-        let workspace = selectedWorkspace ?? workspaces.first
         let projectIDs = Set(workspaces.flatMap(\.projects).map(\.id))
 
         if let selectedProjectID = router.selectedProjectID,
            projectIDs.contains(selectedProjectID) {
-            router.selectedWorkspaceID = workspaceContaining(projectID: selectedProjectID)?.id ?? workspace?.id
             return
         }
 
-        router.selectedWorkspaceID = workspace?.id
-        router.selectedProjectID = workspace?.projects.first?.id ?? workspaces.flatMap(\.projects).first?.id
+        router.selectedProjectID = workspaces.flatMap(\.projects).first?.id
         router.selectedIssueID = nil
-    }
-
-    private func workspaceContaining(projectID: Project.ID) -> Workspace? {
-        workspaces.first { workspace in
-            workspace.projects.contains { $0.id == projectID }
-        }
     }
 }

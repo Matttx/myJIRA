@@ -1,10 +1,8 @@
 import SwiftUI
 
-struct SidebarView: View {
+struct ProjectPickerView: View {
     let workspaces: [Workspace]
-    @Binding var selectedWorkspaceID: Workspace.ID?
     @Binding var selectedProjectID: Project.ID?
-    let onSelectWorkspace: (Workspace) -> Void
     let onSelectProject: (Project) -> Void
 
     var body: some View {
@@ -19,11 +17,10 @@ struct SidebarView: View {
                     Section {
                         ForEach(workspace.projects) { project in
                             Button {
-                                selectedWorkspaceID = workspace.id
                                 selectedProjectID = project.id
                                 onSelectProject(project)
                             } label: {
-                                ProjectSidebarRow(
+                                ProjectPickerRow(
                                     project: project,
                                     isSelected: selectedProjectID == project.id
                                 )
@@ -46,7 +43,7 @@ struct SidebarView: View {
     }
 }
 
-private struct ProjectSidebarRow: View {
+private struct ProjectPickerRow: View {
     let project: Project
     let isSelected: Bool
 
@@ -74,7 +71,7 @@ private struct ProjectSidebarRow: View {
         .padding(.vertical, 7)
         .jiraGlass(
             shape: .roundedRectangle(JiraDesign.controlRadius),
-            tint: isSelected ? Color.primary : nil,
+            tint: isSelected ? Color.primary : Color.secondary.opacity(0.08),
             interactive: true
         )
         .contentShape(RoundedRectangle(cornerRadius: JiraDesign.controlRadius, style: .continuous))

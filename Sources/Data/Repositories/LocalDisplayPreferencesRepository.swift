@@ -8,33 +8,6 @@ final class LocalDisplayPreferencesRepository: DisplayPreferencesRepository, @un
         self.database = database
     }
 
-    func projectOrder(workspaceID: Workspace.ID) async throws -> [Project.ID] {
-        try await database.writer.read { db in
-            try ProjectDisplayOrderRecord
-                .filter(Column("workspaceID") == workspaceID)
-                .order(Column("position").asc)
-                .fetchAll(db)
-                .map(\.projectID)
-        }
-    }
-
-    func saveProjectOrder(workspaceID: Workspace.ID, projectIDs: [Project.ID]) async throws {
-        try await database.writer.write { db in
-            try ProjectDisplayOrderRecord
-                .filter(Column("workspaceID") == workspaceID)
-                .deleteAll(db)
-
-            for (position, projectID) in projectIDs.enumerated() {
-                try ProjectDisplayOrderRecord(
-                    workspaceID: workspaceID,
-                    projectID: projectID,
-                    position: position
-                )
-                .insert(db)
-            }
-        }
-    }
-
     func backlogSprintOrder(projectID: Project.ID) async throws -> [String] {
         try await database.writer.read { db in
             try BacklogSprintOrderRecord

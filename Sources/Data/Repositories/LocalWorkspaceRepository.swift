@@ -3,11 +3,9 @@ import GRDB
 
 final class LocalWorkspaceRepository: WorkspaceRepository, @unchecked Sendable {
     private let database: AppDatabase
-    private let seedDataProvider: SeedDataProvider
 
-    init(database: AppDatabase, seedDataProvider: SeedDataProvider) {
+    init(database: AppDatabase) {
         self.database = database
-        self.seedDataProvider = seedDataProvider
     }
 
     func workspaces() async throws -> [Workspace] {
@@ -28,16 +26,6 @@ final class LocalWorkspaceRepository: WorkspaceRepository, @unchecked Sendable {
                     projects: projects
                 )
             }
-        }
-    }
-
-    func refreshWorkspaces() async throws {
-        let count = try await database.writer.read { db in
-            try WorkspaceRecord.fetchCount(db)
-        }
-
-        if count == 0 {
-            try await seedDataProvider.populate(database: database)
         }
     }
 

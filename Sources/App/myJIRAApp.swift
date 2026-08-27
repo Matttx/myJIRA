@@ -25,8 +25,9 @@ struct MyJiraApp: App {
             )
             .environment(container)
             .tint(JiraDesign.accent)
-            .frame(minWidth: 980, minHeight: 640)
+            .frame(minHeight: 640)
         }
+        .defaultSize(width: 1280, height: 800)
         .commands {
             CommandGroup(after: .newItem) {
                 Button("Refresh") {

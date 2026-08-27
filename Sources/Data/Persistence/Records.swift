@@ -81,14 +81,6 @@ struct ProjectStatusRecord: Codable, FetchableRecord, PersistableRecord {
     var position: Int
 }
 
-struct ProjectDisplayOrderRecord: Codable, FetchableRecord, PersistableRecord {
-    static let databaseTableName = "projectDisplayOrders"
-
-    var workspaceID: String
-    var projectID: String
-    var position: Int
-}
-
 struct BacklogSprintOrderRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "backlogSprintOrders"
 

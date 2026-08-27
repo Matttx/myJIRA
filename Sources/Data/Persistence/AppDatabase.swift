@@ -140,13 +140,6 @@ final class AppDatabase: @unchecked Sendable {
         }
 
         migrator.registerMigration("createDisplayPreferences") { db in
-            try db.create(table: ProjectDisplayOrderRecord.databaseTableName) { table in
-                table.column("workspaceID", .text).notNull().references(WorkspaceRecord.databaseTableName, onDelete: .cascade)
-                table.column("projectID", .text).notNull().references(ProjectRecord.databaseTableName, onDelete: .cascade)
-                table.column("position", .integer).notNull()
-                table.primaryKey(["workspaceID", "projectID"])
-            }
-
             try db.create(table: BacklogSprintOrderRecord.databaseTableName) { table in
                 table.column("projectID", .text).notNull().references(ProjectRecord.databaseTableName, onDelete: .cascade)
                 table.column("groupID", .text).notNull()

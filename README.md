@@ -55,6 +55,12 @@ myJIRA uses Jira Cloud as the source of truth, but it does not treat every scree
 
 This architecture reduces redundant loading, keeps navigation responsive and makes the app feel like a native desktop tool rather than a website in another window.
 
+## A lightweight desktop footprint
+
+myJIRA is designed to stay out of the way while you work. In a representative Release build profiled during normal backlog navigation, the app settled at around **90 MB of memory**, with near-zero CPU usage while idle and low energy impact.
+
+Actual usage varies with the number of loaded issues, active views and macOS version, but the native local-first architecture avoids the memory and processing overhead of keeping a full Jira browser tab running.
+
 Authentication tokens are stored in the macOS Keychain. The local database is stored at:
 
 ```text
@@ -79,11 +85,11 @@ Jira Server and Jira Data Center are not currently supported.
 
 The downloadable app is signed with a Developer ID certificate. The current GitHub build is not yet notarized by Apple, so macOS may block the first launch. If that happens, open **System Settings → Privacy & Security**, find the myJIRA notice and choose **Open Anyway**. You only need to do this once.
 
-## First release
+## Latest release
 
-Version **1.1 (build 6)** is the first downloadable public release of myJIRA. It includes the native backlog, Kanban workflow, issue editing, Jira URL sharing and the local-first synchronization foundation.
+Version **1.2 (build 7)** introduces a more space-efficient project picker, responsive issue details for compact windows, native toolbar search, last-project restoration and a broad internal cleanup.
 
-[Read the full release notes](https://github.com/Matttx/myJIRA/releases/tag/1.1)
+[Read the full release notes](https://github.com/Matttx/myJIRA/releases/tag/1.2)
 
 ## Build from source
 
@@ -122,6 +128,12 @@ You can also build and launch from Terminal:
 - OAuth with `ASWebAuthenticationSession`
 - Secure token storage in Keychain
 - Clean Architecture with MVVM at the presentation layer
+
+## Built with AI assistance
+
+myJIRA was created with the help of AI-assisted development tools. AI contributed to parts of the ideation, implementation, debugging, refactoring and documentation process.
+
+The product direction, architecture decisions, Jira integration choices, testing and releases remain human-reviewed and maintained. I am sharing this explicitly because transparency about how the app is made matters to me.
 
 ## Privacy
 

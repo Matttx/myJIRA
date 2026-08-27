@@ -60,7 +60,6 @@ struct IssueDetailView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
-                .scrollClipDisabled()
                 .onChange(of: issue.id) { _, _ in
                     selectedPage = .subtasks
                     replyingToComment = nil
