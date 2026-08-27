@@ -233,7 +233,7 @@ struct MainWindowView: View {
                     .help("Close issue details")
                 }
             }
-            .frame(minWidth: 760, idealWidth: 820, minHeight: 640, idealHeight: 760)
+            .frame(minWidth: 400, idealWidth: 540, minHeight: 540, idealHeight: 620)
         }
     }
 
